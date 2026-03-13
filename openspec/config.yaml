@@ -18,3 +18,33 @@ schema: spec-driven
 #       - Always include a "Non-goals" section
 #     tasks:
 #       - Break tasks into chunks of max 2 hours
+
+context: |
+  Por favor, gere todos os artefatos em Português-BR.
+
+  # TECH STACK - BACKEND
+  - Framework: FastAPI
+  - Banco de Dados: PostgreSQL
+  - Validação: Pydantic
+
+  # TECH STACK - FRONTEND
+  - Framework: Next.js
+  - Linguagem: TypeScript
+  - Estilo: TailwindCSS
+  - Componentes: shadcn/ui
+
+  # DOMAIN
+  - O projeto é um sistema de gestão de receitas para chefs de cozinha.
+  - O sistema deve ser capaz de armazenar, gerenciar e compartilhar receitas.
+  - O sistema deve ser capaz de gerar fichas técnicas de receitas.
+
+rules:
+  proposal: |
+    - Toda nova proposta deve especificar claramente os objetivos, não-objetivos e decisões que serão tomadas.    
+  
+  specs: | 
+    - Use sempre o formato Given/When/Then (Dado/Quando/Então) para descrever os cenários.
+  
+  design: | 
+    - Backend: Detalhe os modelos do banco de dados (PostgreSQL) e como o schema do FastAPI/Pydantic garante o Type-safety ponta a ponta
+    - Frontend: Detalhe os componentes do shadcn/ui que serão utilizados e como o Next.js será utilizado para criar o dashboard.

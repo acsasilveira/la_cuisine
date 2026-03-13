@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fission-ai/openspec": "^1.2.0"
+    "@fission-ai/openspec": "^1.2.0",
+    "uipro-cli": "^2.2.3"
   }
 }

@@ -108,3 +108,137 @@ Context: {json_dump_of_available_recipes}
 *   **Frontend:** Vercel (Native support for Next.js, excellent free tier).
 *   **Backend:** Render or Railway (Good free/low-cost tiers for Python/Docker applications).
 *   **Database:** Supabase (PostgreSQL with generous free tier).
+
+## 6. Backend Models (SQLModel + Pydantic)
+
+The backend must use SQLModel for ORM and Pydantic for validation.
+
+Rules:
+
+- SQLModel models must match Pydantic schemas
+- No duplicated fields
+- UUID primary keys
+- Enums must be typed
+
+Example:
+
+```python
+from sqlmodel import SQLModel, Field
+from uuid import UUID, uuid4
+from typing import Optional
+
+class Recipe(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    title: str
+    category: str
+    yield_amount: float
+    yield_unit: str
+
+from pydantic import BaseModel
+from uuid import UUID
+
+class RecipeCreate(BaseModel):
+    title: str
+    category: str
+    yield_amount: float
+    yield_unit: str
+
+```
+
+## 7. API Contracts
+
+All endpoints must return typed responses.
+
+Rules:
+
+- JSON only
+- No any
+- Must match Pydantic schema
+- Must be used to generate TypeScript types
+
+Example:
+
+POST /api/recipes
+
+Request:
+
+```json
+{
+  "title": "Cake",
+  "category": "Dessert"
+}
+```
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "title": "Cake",
+  "category": "Dessert"
+}
+```
+
+## 8. Frontend Type Safety
+
+Frontend must use TypeScript types generated from OpenAPI.
+
+Rules:
+
+- Do not use any
+- Use typed fetch
+- Use TanStack Query
+- Use shadcn/ui components
+
+Example:
+
+type Recipe = {
+  id: string
+  title: string
+  category: string
+}
+
+## 9. Backend Architecture
+
+Structure:
+
+backend/
+  domain/
+  application/
+  infrastructure/
+  api/
+
+Rules:
+
+- Domain has no FastAPI imports
+- API layer only handles requests
+- DB only in infrastructure
+
+## 10. Docker and Environment
+
+Rules:
+
+- Docker required
+- docker-compose required
+- .env required
+
+Services:
+
+- frontend
+- backend
+- postgres
+
+Env example:
+
+DATABASE_URL=
+GEMINI_API_KEY=
+JWT_SECRET=
+
+## 11. Security
+
+Rules:
+
+- JWT authentication
+- No wildcard CORS
+- Validate input
+- Validate AI output

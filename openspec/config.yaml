@@ -20,31 +20,124 @@ schema: spec-driven
 #       - Break tasks into chunks of max 2 hours
 
 context: |
-  Por favor, gere todos os artefatos em Português-BR.
+  Gere todos os artefatos em Português-BR.
 
-  # TECH STACK - BACKEND
-  - Framework: FastAPI
-  - Banco de Dados: PostgreSQL
-  - Validação: Pydantic
+  ========================
+  PROJECT
+  ========================
 
-  # TECH STACK - FRONTEND
-  - Framework: Next.js
-  - Linguagem: TypeScript
-  - Estilo: TailwindCSS
-  - Componentes: shadcn/ui
+  Sistema web para chefs de cozinha gerenciarem receitas,
+  gerar fichas técnicas automaticamente,
+  criar menus com IA,
+  e utilizar chat culinário assistido por LLM.
 
-  # DOMAIN
-  - O projeto é um sistema de gestão de receitas para chefs de cozinha.
-  - O sistema deve ser capaz de armazenar, gerenciar e compartilhar receitas.
-  - O sistema deve ser capaz de gerar fichas técnicas de receitas.
+  ========================
+  TECH STACK BACKEND
+  ========================
+
+  Python 3.11+
+  FastAPI 0.104+
+  Pydantic v2
+  SQLModel 0.0.14+
+  PostgreSQL 14+
+  Alembic migrations
+
+  Architecture:
+  Clean Architecture
+  Domain / Application / Infrastructure
+  REST API
+  OpenAPI auto generated
+
+  ORM RULE:
+  Use SQLModel only
+  Pydantic must match SQLModel
+  No duplicated schemas
+
+  ========================
+  TECH STACK FRONTEND
+  ========================
+
+  Next.js 14+
+  TypeScript
+  App Router
+  TailwindCSS
+  shadcn/ui
+  TanStack Query
+
+  Rules Frontend:
+
+  Do not use any
+  Types must come from OpenAPI
+  Use Server Components by default
+
+  ========================
+  IA / LLM
+  ========================
+
+  Google Gemini API
+
+  Rules LLM:
+
+  Must return JSON
+  Must follow specs
+  Must not invent fields
+  Must respect schema
+
+  ========================
+  DATABASE
+  ========================
+
+  PostgreSQL only
+  UUID primary keys
+  Migrations required
+
+  ========================
+  DOCKER
+  ========================
+
+  Docker required
+  docker-compose for dev
+  .env required
+
+  ========================
+  SECURITY
+  ========================
+
+  JWT auth
+  No CORS "*"
+  HTTPS in production
+
 
 rules:
+
   proposal: |
-    - Toda nova proposta deve especificar claramente os objetivos, não-objetivos e decisões que serão tomadas.    
-  
-  specs: | 
-    - Use sempre o formato Given/When/Then (Dado/Quando/Então) para descrever os cenários.
-  
-  design: | 
-    - Backend: Detalhe os modelos do banco de dados (PostgreSQL) e como o schema do FastAPI/Pydantic garante o Type-safety ponta a ponta
-    - Frontend: Detalhe os componentes do shadcn/ui que serão utilizados e como o Next.js será utilizado para criar o dashboard.
+    - Toda proposta deve conter objetivo, escopo e requisitos.
+    - Deve conter requisitos funcionais (RF).
+    - Deve conter requisitos não funcionais (RNF).
+
+  specs: |
+    - Use formato Given/When/Then.
+    - Deve definir comportamento da API.
+    - Deve definir erros.
+    - Deve definir formato de resposta.
+
+  design: |
+    Backend:
+    - Definir modelos SQLModel
+    - Definir schemas Pydantic
+    - Definir endpoints FastAPI
+    - Garantir type-safety
+
+    Frontend:
+    - Definir componentes shadcn/ui
+    - Definir tipos TypeScript
+    - Definir integração com API
+
+    Infra:
+    - Definir Docker
+    - Definir variáveis de ambiente
+
+  tasks: |
+    - Tasks devem ter critérios de aceitação.
+    - Tasks devem ser testáveis.
+    - Tasks devem ser incrementais.

@@ -1,5 +1,5 @@
 """Modelos SQLModel para o banco de dados PostgreSQL."""
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -10,6 +10,7 @@ from app.domain.entities.recipe import (
     RecipeIngredientBase,
     RecipeStepBase,
 )
+from app.domain.enums.recipe_enums import TemperatureType
 
 
 class RecipeModel(RecipeBase, SQLModel, table=True):
@@ -19,10 +20,10 @@ class RecipeModel(RecipeBase, SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     prep_time_minutes: int | None = None
-    temperature_type: str | None = None
+    temperature_type: TemperatureType | None = None
     style: str | None = None
     image_url: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Relationships
     ingredients: list["RecipeIngredientModel"] = Relationship(back_populates="recipe")

@@ -60,6 +60,10 @@ class TestRecipeEndpoints:
         data = response.json()
         assert data["title"] == "Bolo de Chocolate"
         assert "id" in data
+        assert "ingredients" in data
+        assert "steps" in data
+        assert isinstance(data["ingredients"], list)
+        assert isinstance(data["steps"], list)
 
     async def test_post_recipe_422_dados_invalidos(self, e2e_client):
         response = await e2e_client.post("/api/recipes", json={
@@ -86,18 +90,31 @@ class TestRecipeEndpoints:
         assert response.status_code == 200
 
     async def test_get_recipe_by_id_200(self, e2e_client):
-        # Criar receita
+        # Criar receita com ingredientes e passos
         create_resp = await e2e_client.post("/api/recipes", json={
             "title": "Feijoada",
             "category": "main",
             "yield_amount": 8.0,
             "yield_unit": "porções",
+            "ingredients": [
+                {"name": "Feijão Preto", "amount": 500.0, "unit": "g"},
+                {"name": "Linguiça", "amount": 200.0, "unit": "g"},
+            ],
+            "steps": [
+                {"step_number": 1, "instruction": "Cozinhar o feijão"},
+                {"step_number": 2, "instruction": "Refogar a linguiça"},
+            ],
         })
         recipe_id = create_resp.json()["id"]
 
         response = await e2e_client.get(f"/api/recipes/{recipe_id}")
         assert response.status_code == 200
-        assert response.json()["title"] == "Feijoada"
+        data = response.json()
+        assert data["title"] == "Feijoada"
+        assert len(data["ingredients"]) == 2
+        assert len(data["steps"]) == 2
+        assert data["ingredients"][0]["ingredient"]["name"] == "Feijão Preto"
+        assert data["steps"][0]["instruction"] == "Cozinhar o feijão"
 
     async def test_get_recipe_by_id_404(self, e2e_client):
         response = await e2e_client.get(

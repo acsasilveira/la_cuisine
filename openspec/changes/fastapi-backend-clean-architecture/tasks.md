@@ -95,8 +95,8 @@
 
 ## 9. Refactor e Validação Final
 
-- [x] 9.1 🔵 Refatorar código (bcrypt direto vs passlib)
-- [x] 9.2 Executar `pytest` completo — **75 passed** ✅
+- [x] 9.1 🔵 Refatorar código (bcrypt direto vs passlib, enums vinculados, RecipeResponse com ingredients/steps, datetime.utcnow deprecation fix)
+- [x] 9.2 Executar `pytest` completo — **76 passed** ✅
 - [ ] 9.3 Verificar OpenAPI via `/docs` (requer docker-compose)
 - [ ] 9.4 Verificar `docker-compose up` sobe backend + postgres
 - [ ] 9.5 Verificar `alembic upgrade head` cria tabelas

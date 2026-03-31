@@ -27,7 +27,9 @@ async def create_recipe(
     repo = RecipeRepository(session)
     use_case = CreateRecipeUseCase(repository=repo)
     result = await use_case.execute(recipe.model_dump())
-    return result
+    # Re-fetch com eager loading para incluir ingredients/steps na resposta
+    full_recipe = await repo.get_by_id(result.id)
+    return full_recipe
 
 
 @router.get("", response_model=list[RecipeResponse])

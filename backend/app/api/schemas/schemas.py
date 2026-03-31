@@ -34,10 +34,37 @@ class RecipeCreate(RecipeBase):
     steps: list[RecipeStepCreate] = []
 
 
+class IngredientInfo(BaseModel):
+    """Schema de informação de ingrediente (nome)."""
+    name: str
+
+    model_config = {"from_attributes": True}
+
+
+class RecipeIngredientResponse(BaseModel):
+    """Schema de resposta de ingrediente de receita."""
+    amount: float
+    unit: str
+    notes: str | None = None
+    ingredient: IngredientInfo | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class RecipeStepResponse(BaseModel):
+    """Schema de resposta de passo de receita."""
+    step_number: int
+    instruction: str
+
+    model_config = {"from_attributes": True}
+
+
 class RecipeResponse(RecipeBase):
     """Schema de resposta de receita."""
     id: UUID
     created_at: datetime
+    ingredients: list[RecipeIngredientResponse] = []
+    steps: list[RecipeStepResponse] = []
 
     model_config = {"from_attributes": True}
 

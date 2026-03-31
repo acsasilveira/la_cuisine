@@ -7,6 +7,8 @@ from uuid import UUID
 import pytest
 from pydantic import ValidationError
 
+from app.domain.enums.recipe_enums import RecipeCategory
+
 
 class TestRecipeBase:
     """Testes para a entidade RecipeBase."""
@@ -21,9 +23,20 @@ class TestRecipeBase:
             yield_unit="porções",
         )
         assert recipe.title == "Risotto de Trufa"
-        assert recipe.category == "main"
+        assert recipe.category == RecipeCategory.MAIN
         assert recipe.yield_amount == 4.0
         assert recipe.yield_unit == "porções"
+
+    def test_categoria_invalida_levanta_erro(self):
+        from app.domain.entities.recipe import RecipeBase
+
+        with pytest.raises(ValidationError):
+            RecipeBase(
+                title="Risotto",
+                category="nao_existe",
+                yield_amount=4.0,
+                yield_unit="porções",
+            )
 
     def test_titulo_obrigatorio(self):
         from app.domain.entities.recipe import RecipeBase

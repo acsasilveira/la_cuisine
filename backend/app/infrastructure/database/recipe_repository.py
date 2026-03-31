@@ -76,7 +76,16 @@ class RecipeRepository(RecipeRepositoryPort):
         return result.scalar_one_or_none()
 
     async def list_all(self) -> list[RecipeModel]:
-        """Lista todas as receitas."""
-        stmt = select(RecipeModel).order_by(RecipeModel.created_at.desc())
+        """Lista todas as receitas com ingredientes e passos."""
+        stmt = (
+            select(RecipeModel)
+            .options(
+                selectinload(RecipeModel.ingredients).selectinload(
+                    RecipeIngredientModel.ingredient
+                ),
+                selectinload(RecipeModel.steps),
+            )
+            .order_by(RecipeModel.created_at.desc())
+        )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

@@ -1,12 +1,14 @@
 """Entidades base do domínio LaCuisine (Pydantic BaseModel, sem ORM)."""
 from pydantic import BaseModel
 
+from app.domain.enums.recipe_enums import RecipeCategory
+
 
 class RecipeBase(BaseModel):
     """Entidade base de receita — campos compartilhados."""
 
     title: str
-    category: str
+    category: RecipeCategory
     yield_amount: float
     yield_unit: str
 

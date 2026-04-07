@@ -1,28 +1,61 @@
-"""Router de autenticação — endpoint de login JWT."""
-from fastapi import APIRouter, HTTPException, status
+"""Router de autenticação — register, login (cookie), logout."""
+from datetime import timedelta
 
-from app.api.schemas.schemas import LoginRequest, TokenResponse
-from app.application.use_cases.auth_use_cases import LoginUseCase
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.dependencies.deps import get_db_session
+from app.api.schemas.schemas import (
+    LoginRequest,
+    MessageResponse,
+    RegisterRequest,
+    UserResponse,
+)
+from app.application.use_cases.auth_use_cases import LoginUseCase, RegisterUseCase
+from app.infrastructure.database.user_repository import UserRepository
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-# NOTA: Em produção, buscar hash do banco. Para MVP, usar hash hardcoded ou banco.
-# Este é o placeholder — será integrado com User model no futuro.
-MOCK_USERS = {}
+# Cookie config
+COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 ano em segundos
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
-    """Autentica usuário e retorna token JWT."""
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+async def register(
+    request: RegisterRequest,
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Registra um novo usuário."""
+    repo = UserRepository(session)
+    use_case = RegisterUseCase(repository=repo)
+
+    try:
+        user = await use_case.execute(
+            email=request.email,
+            password=request.password,
+            full_name=request.full_name,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        )
+
+    return user
+
+
+@router.post("/login", response_model=UserResponse)
+async def login(
+    request: LoginRequest,
+    response: Response,
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Autentica usuário e seta cookie HTTP-Only com JWT."""
     from app.config import settings
-    from app.infrastructure.auth.password import hash_password
 
-    # Em produção, buscar do banco
-    stored_hash = MOCK_USERS.get(request.email)
-    if stored_hash is None:
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
-
+    repo = UserRepository(session)
     use_case = LoginUseCase(
+        repository=repo,
         secret=settings.JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
@@ -30,10 +63,40 @@ async def login(request: LoginRequest):
     result = await use_case.execute(
         email=request.email,
         password=request.password,
-        stored_hash=stored_hash,
     )
 
     if result is None:
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas",
+        )
 
-    return TokenResponse(**result)
+    # Setar cookie HTTP-Only com o JWT
+    response.set_cookie(
+        key="session",
+        value=result["access_token"],
+        max_age=COOKIE_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        path="/",
+        secure=False,  # True em produção (HTTPS)
+    )
+
+    # Retornar dados do usuário (sem token no body)
+    return {
+        "id": result["user_id"],
+        "email": result["user_email"],
+        "full_name": result["user_full_name"],
+    }
+
+
+@router.post("/logout", response_model=MessageResponse)
+async def logout(response: Response):
+    """Faz logout apagando o cookie de sessão."""
+    response.delete_cookie(
+        key="session",
+        httponly=True,
+        samesite="lax",
+        path="/",
+    )
+    return {"message": "Logout realizado com sucesso"}

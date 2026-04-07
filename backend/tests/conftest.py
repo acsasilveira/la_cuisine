@@ -5,6 +5,7 @@ Fornece:
 - Banco de dados SQLite async para testes (sem necessidade de PostgreSQL)
 - Sessão de banco com rollback automático
 - httpx.AsyncClient para testes E2E
+- Fixtures de autenticação (usuário de teste + cookie JWT)
 """
 import asyncio
 from collections.abc import AsyncGenerator

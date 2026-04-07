@@ -1,9 +1,10 @@
-"""Router de chat — endpoint de chat culinário com IA."""
-from fastapi import APIRouter, HTTPException, status
+"""Router de chat — endpoint de chat culinário com IA (protegido por auth)."""
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies.deps import get_ai_service
+from app.api.dependencies.deps import get_ai_service, get_current_user
 from app.api.schemas.schemas import ChatRequest, ChatResponse
 from app.application.use_cases.ai_use_cases import ChatCopilotUseCase
+from app.infrastructure.database.models import UserModel
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -11,6 +12,7 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 @router.post("/copilot", response_model=ChatResponse)
 async def chat_copilot(
     request: ChatRequest,
+    current_user: UserModel = Depends(get_current_user),
 ):
     """Chat culinário assistido por IA."""
     if not request.message or not request.message.strip():

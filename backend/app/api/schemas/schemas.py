@@ -122,13 +122,28 @@ class ChatResponse(BaseModel):
 
 # ---- Auth Schemas ----
 
+class RegisterRequest(BaseModel):
+    """Schema de requisição de registro."""
+    email: str
+    password: str
+    full_name: str
+
+
 class LoginRequest(BaseModel):
     """Schema de requisição de login."""
     email: str
     password: str
 
 
-class TokenResponse(BaseModel):
-    """Schema de resposta de token."""
-    access_token: str
-    token_type: str = "bearer"
+class UserResponse(BaseModel):
+    """Schema de resposta com dados do usuário (sem senha)."""
+    id: UUID
+    email: str
+    full_name: str
+
+    model_config = {"from_attributes": True}
+
+
+class MessageResponse(BaseModel):
+    """Schema genérico de resposta com mensagem."""
+    message: str

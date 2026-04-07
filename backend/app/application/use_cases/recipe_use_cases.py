@@ -26,9 +26,9 @@ class ListRecipesUseCase:
     def __init__(self, repository: RecipeRepositoryPort):
         self.repository = repository
 
-    async def execute(self):
-        """Executa a listagem de receitas."""
-        return await self.repository.list_all()
+    async def execute(self, user_id: UUID | None = None):
+        """Executa a listagem de receitas, opcionalmente filtrando por user_id."""
+        return await self.repository.list_all(user_id=user_id)
 
 
 class GetRecipeByIdUseCase:
@@ -37,6 +37,6 @@ class GetRecipeByIdUseCase:
     def __init__(self, repository: RecipeRepositoryPort):
         self.repository = repository
 
-    async def execute(self, recipe_id: UUID):
-        """Executa a busca de receita por ID."""
-        return await self.repository.get_by_id(recipe_id)
+    async def execute(self, recipe_id: UUID, user_id: UUID | None = None):
+        """Executa a busca de receita por ID, opcionalmente verificando ownership."""
+        return await self.repository.get_by_id(recipe_id, user_id=user_id)

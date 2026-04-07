@@ -60,7 +60,7 @@ class RecipeRepository(RecipeRepositoryPort):
         await self.session.refresh(recipe)
         return recipe
 
-    async def get_by_id(self, recipe_id: UUID) -> RecipeModel | None:
+    async def get_by_id(self, recipe_id: UUID, user_id: UUID | None = None) -> RecipeModel | None:
         """Busca uma receita por ID com ingredientes e passos."""
         stmt = (
             select(RecipeModel)
@@ -72,11 +72,13 @@ class RecipeRepository(RecipeRepositoryPort):
                 selectinload(RecipeModel.steps),
             )
         )
+        if user_id is not None:
+            stmt = stmt.where(RecipeModel.user_id == user_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_all(self) -> list[RecipeModel]:
-        """Lista todas as receitas com ingredientes e passos."""
+    async def list_all(self, user_id: UUID | None = None) -> list[RecipeModel]:
+        """Lista receitas com ingredientes e passos, opcionalmente filtrando por user."""
         stmt = (
             select(RecipeModel)
             .options(
@@ -87,5 +89,7 @@ class RecipeRepository(RecipeRepositoryPort):
             )
             .order_by(RecipeModel.created_at.desc())
         )
+        if user_id is not None:
+            stmt = stmt.where(RecipeModel.user_id == user_id)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

@@ -1,10 +1,11 @@
-"""Router de menus — endpoint de sugestão de menu com IA."""
+"""Router de menus — endpoint de sugestão de menu com IA (protegido por auth)."""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies.deps import get_db_session, get_ai_service
+from app.api.dependencies.deps import get_db_session, get_ai_service, get_current_user
 from app.api.schemas.schemas import MenuSuggestRequest, MenuResponse
 from app.application.use_cases.ai_use_cases import SuggestMenuUseCase
+from app.infrastructure.database.models import UserModel
 from app.infrastructure.database.recipe_repository import RecipeRepository
 
 router = APIRouter(prefix="/api/menus", tags=["menus"])
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/api/menus", tags=["menus"])
 @router.post("/suggest", response_model=MenuResponse)
 async def suggest_menu(
     request: MenuSuggestRequest,
+    current_user: UserModel = Depends(get_current_user),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Gera sugestão de menu com IA baseado em receitas disponíveis."""

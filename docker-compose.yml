@@ -4,7 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - DATABASE_URL=postgresql+asyncpg://lacuisine:lacuisine@postgres:5432/lacuisine
       - GEMINI_API_KEY=${GEMINI_API_KEY}

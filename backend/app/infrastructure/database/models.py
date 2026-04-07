@@ -10,7 +10,23 @@ from app.domain.entities.recipe import (
     RecipeIngredientBase,
     RecipeStepBase,
 )
+from app.domain.entities.user import UserBase
 from app.domain.enums.recipe_enums import TemperatureType
+
+
+class UserModel(UserBase, SQLModel, table=True):
+    """Modelo de usuário no banco de dados."""
+
+    __tablename__ = "users"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    email: str = Field(unique=True)
+    hashed_password: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    recipes: list["RecipeModel"] = Relationship(back_populates="owner")
 
 
 class RecipeModel(RecipeBase, SQLModel, table=True):
@@ -19,6 +35,7 @@ class RecipeModel(RecipeBase, SQLModel, table=True):
     __tablename__ = "recipes"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID | None = Field(default=None, foreign_key="users.id")
     prep_time_minutes: int | None = None
     temperature_type: TemperatureType | None = None
     style: str | None = None
@@ -26,6 +43,7 @@ class RecipeModel(RecipeBase, SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Relationships
+    owner: UserModel | None = Relationship(back_populates="recipes")
     ingredients: list["RecipeIngredientModel"] = Relationship(back_populates="recipe")
     steps: list["RecipeStepModel"] = Relationship(back_populates="recipe")
 

@@ -2,11 +2,13 @@
 
 ## RF-001 Criar Receita Manualmente
 
-Dado que o usuário envia dados válidos no formato RecipeCreate
+Dado que o usuário está autenticado (cookie session válido) e envia dados válidos no formato RecipeCreate
 
 Quando a requisição POST /api/recipes é feita
 
-Então o sistema deve validar os dados com Pydantic
+Então o sistema DEVE ler o cookie session, extrair user_id do JWT
+
+E vincular a receita ao user_id
 
 E salvar a receita no banco PostgreSQL
 
@@ -28,13 +30,13 @@ Então retornar HTTP 500
 
 ## RF-002 Listar receitas
 
-Dado que existem receitas cadastradas
+Dado que o usuário está autenticado (cookie session válido)
 
 Quando a requisição GET /api/recipes é feita
 
-Então o sistema deve consultar o banco
+Então o sistema DEVE consultar o banco filtrando por user_id do cookie
 
-E retornar lista de RecipeResponse
+E retornar apenas as receitas do usuário autenticado
 
 E retornar HTTP 200
 
@@ -89,15 +91,13 @@ Então retornar HTTP 504
 
 ## RF-004 Obter receita por ID
 
-Dado que a receita existe
+Dado que a receita existe e pertence ao usuário autenticado
 
 Quando GET /api/recipes/{id}
 
-Então o sistema deve buscar no banco
+Então o sistema DEVE verificar que a receita pertence ao user_id do cookie
 
-E retornar RecipeResponse
-
-E retornar HTTP 200
+E retornar RecipeResponse com HTTP 200
 
 
 Se não existir
@@ -122,7 +122,7 @@ Schemas devem ser gerados pelo OpenAPI
 
 ## RF-006 Persistência
 
-Receitas devem ser armazenadas em PostgreSQL
+Receitas devem ser armazenadas em PostgreSQL com coluna user_id (FK → users.id) NOT NULL
 
 ID deve ser UUID
 

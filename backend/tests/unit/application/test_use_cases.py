@@ -214,38 +214,71 @@ class TestChatCopilotUseCase:
 class TestLoginUseCase:
     async def test_credenciais_validas(self):
         from app.application.use_cases.auth_use_cases import LoginUseCase
+        from app.infrastructure.auth.password import hash_password
+
+        # Mock Repository
+        mock_repo = AsyncMock()
+        mock_repo.get_by_email.return_value = MagicMock(
+            email="chef@lacuisine.com",
+            hashed_password=hash_password("senha123")
+        )
 
         use_case = LoginUseCase(
+            repository=mock_repo,
             secret="test-secret",
             algorithm="HS256",
         )
-        # Simular um hash válido
-        from app.infrastructure.auth.password import hash_password
-        hashed = hash_password("senha123")
 
         result = await use_case.execute(
             email="chef@lacuisine.com",
             password="senha123",
-            stored_hash=hashed,
         )
 
         assert result is not None
         assert "access_token" in result
+        mock_repo.get_by_email.assert_called_once_with("chef@lacuisine.com")
 
     async def test_credenciais_invalidas(self):
         from app.application.use_cases.auth_use_cases import LoginUseCase
+        from app.infrastructure.auth.password import hash_password
+
+        # Mock Repository
+        mock_repo = AsyncMock()
+        mock_repo.get_by_email.return_value = MagicMock(
+            email="chef@lacuisine.com",
+            hashed_password=hash_password("senha-certa")
+        )
 
         use_case = LoginUseCase(
+            repository=mock_repo,
             secret="test-secret",
             algorithm="HS256",
         )
-        from app.infrastructure.auth.password import hash_password
-        hashed = hash_password("senha-certa")
 
         result = await use_case.execute(
             email="chef@lacuisine.com",
             password="senha-errada",
-            stored_hash=hashed,
         )
 
         assert result is None
+
+    async def test_usuario_nao_encontrado(self):
+        from app.application.use_cases.auth_use_cases import LoginUseCase
+
+        # Mock Repository
+        mock_repo = AsyncMock()
+        mock_repo.get_by_email.return_value = None
+
+        use_case = LoginUseCase(
+            repository=mock_repo,
+            secret="test-secret",
+            algorithm="HS256",
+        )
+
+        result = await use_case.execute(
+            email="nao-existe@test.com",
+            password="senha",
+        )
+
+        assert result is None
+

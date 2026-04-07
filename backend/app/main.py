@@ -8,7 +8,7 @@ from app.api.routers import recipe_router, menu_router, chat_router, auth_router
 app = FastAPI(
     title="LaCuisine API",
     description="API para gerenciamento culinário com IA",
-    version="0.1.0",
+    version="0.2.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -33,6 +33,20 @@ app.include_router(recipe_router.router)
 app.include_router(menu_router.router)
 app.include_router(chat_router.router)
 app.include_router(auth_router.router)
+
+
+# Startup: configure DB + Auth
+@app.on_event("startup")
+async def startup_event():
+    """Configura banco de dados e autenticação no startup."""
+    try:
+        from app.config import settings
+        from app.api.dependencies.deps import configure_db, configure_auth
+
+        configure_db(settings.DATABASE_URL)
+        configure_auth(settings.JWT_SECRET, settings.JWT_ALGORITHM)
+    except Exception as e:
+        print(f"⚠️ Config error (ok em testes): {e}")
 
 
 # Error Handlers

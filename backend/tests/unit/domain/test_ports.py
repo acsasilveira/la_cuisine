@@ -68,3 +68,33 @@ class TestAIServicePort:
 
         with pytest.raises(TypeError):
             AIServicePort()
+
+
+class TestUserRepositoryPort:
+    """Testes para a interface UserRepositoryPort."""
+
+    def test_e_classe_abstrata(self):
+        from app.domain.ports.repository_ports import UserRepositoryPort
+
+        assert issubclass(UserRepositoryPort, ABC)
+
+    def test_possui_metodo_create(self):
+        from app.domain.ports.repository_ports import UserRepositoryPort
+
+        assert hasattr(UserRepositoryPort, "create")
+
+    def test_possui_metodo_get_by_email(self):
+        from app.domain.ports.repository_ports import UserRepositoryPort
+
+        assert hasattr(UserRepositoryPort, "get_by_email")
+
+    def test_possui_metodo_get_by_id(self):
+        from app.domain.ports.repository_ports import UserRepositoryPort
+
+        assert hasattr(UserRepositoryPort, "get_by_id")
+
+    def test_nao_pode_instanciar_diretamente(self):
+        from app.domain.ports.repository_ports import UserRepositoryPort
+
+        with pytest.raises(TypeError):
+            UserRepositoryPort()

@@ -1,0 +1,20 @@
+- `[ ]` Setup do Design System no Next.js
+    - `[ ]` Configurar variáveis de cores baseadas na paleta (Ouro, Creme, Grafite)
+    - `[ ]` Importar fontes (Playfair Display, Montserrat) via Google Fonts/Next Font
+- `[ ]` Implementar Layout Base Mobile-First
+    - `[ ]` Criar Barra de Navegação inferior baseada em ícones
+    - `[ ]` Configurar transições entre telas
+- `[ ]` Desenvolver Tela de Chat (Agente)
+    - `[ ]` Interface de chat limpa (sem bolhas)
+    - `[ ]` Componente de Card Interativo de Receita
+    - `[ ]` Lógica de "Drop & Chat" para upload de imagens
+- `[ ]` Desenvolver Tela "Livro de Receitas"
+    - `[ ]` Grid de fotos com Smart View (resumo financeiro via setinha)
+- `[ ]` Desenvolver Tela de Detalhes da Receita
+    - `[ ]` Layout focado em execução (Preparo)
+- `[ ]` Desenvolver Tela de Ficha Técnica
+    - `[ ]` Componentes de gestão de custos e pesos
+    - `[ ]` Lógica de edição in-place
+- `[ ]` Integração com Backend
+    - `[ ]` Conectar com endpoints de chat e análise de imagem
+    - `[ ]` Persistência das edições da Ficha Técnica

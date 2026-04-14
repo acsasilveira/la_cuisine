@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquare, Book, User, ChefHat, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/providers/AuthProvider";
 
 const navItems = [
   { label: "O Agente", href: "/", icon: MessageSquare },
@@ -14,6 +15,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-graphite/5 bg-cream md:flex flex-col p-8">
@@ -21,6 +23,9 @@ export function Sidebar() {
         <span className="font-serif text-3xl font-bold tracking-tight text-graphite">
           LaCuisine
         </span>
+        {user && (
+          <p className="text-xs text-graphite/40 mt-1 truncate">Olá, {user.full_name}</p>
+        )}
       </div>
 
       <nav className="flex flex-1 flex-col gap-8">
@@ -52,7 +57,10 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-graphite/5 pt-8">
-        <button className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-graphite/30 hover:text-red-500 transition-colors">
+        <button
+          onClick={logout}
+          className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-graphite/30 hover:text-red-500 transition-colors"
+        >
           <LogOut className="h-4 w-4" />
           Sair da Conta
         </button>

@@ -21,6 +21,16 @@ class RecipeRepositoryPort(ABC):
         """Lista receitas, opcionalmente filtrando por user_id."""
         ...
 
+    @abstractmethod
+    async def update(self, recipe_id: UUID, data: dict, user_id: UUID | None = None) -> dict | None:
+        """Atualiza uma receita existente."""
+        ...
+
+    @abstractmethod
+    async def delete(self, recipe_id: UUID, user_id: UUID | None = None) -> bool:
+        """Deleta uma receita por ID."""
+        ...
+
 
 class UserRepositoryPort(ABC):
     """Interface abstrata para o repositório de usuários."""

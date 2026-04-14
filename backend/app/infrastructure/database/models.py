@@ -22,6 +22,9 @@ class UserModel(UserBase, SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     email: str = Field(unique=True)
     hashed_password: str
+    phone: str | None = None
+    location: str | None = None
+    specialty: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -40,6 +43,8 @@ class RecipeModel(RecipeBase, SQLModel, table=True):
     temperature_type: TemperatureType | None = None
     style: str | None = None
     image_url: str | None = None
+    cost_per_serving: float | None = None
+    total_cost: float | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Relationships
@@ -70,6 +75,7 @@ class RecipeIngredientModel(RecipeIngredientBase, SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     recipe_id: UUID = Field(foreign_key="recipes.id")
     ingredient_id: UUID = Field(foreign_key="ingredients.id")
+    cost_per_unit: float | None = None
 
     # Relationships
     recipe: RecipeModel | None = Relationship(back_populates="ingredients")
@@ -88,3 +94,33 @@ class RecipeStepModel(RecipeStepBase, SQLModel, table=True):
 
     # Relationships
     recipe: RecipeModel | None = Relationship(back_populates="steps")
+
+
+class MenuModel(SQLModel, table=True):
+    """Modelo de menu no banco de dados."""
+
+    __tablename__ = "menus"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    title: str
+    occasion: str | None = None
+    user_id: UUID | None = Field(default=None, foreign_key="users.id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    items: list["MenuItemModel"] = Relationship(back_populates="menu")
+
+
+class MenuItemModel(SQLModel, table=True):
+    """Modelo de item de menu no banco de dados."""
+
+    __tablename__ = "menu_items"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    menu_id: UUID = Field(foreign_key="menus.id")
+    category: str
+    recipe_name: str
+    is_new: bool = False
+
+    # Relationships
+    menu: MenuModel | None = Relationship(back_populates="items")

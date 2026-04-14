@@ -32,6 +32,22 @@ class RecipeCreate(RecipeBase):
     """Schema para criar uma receita."""
     ingredients: list[RecipeIngredientCreate] = []
     steps: list[RecipeStepCreate] = []
+    cost_per_serving: float | None = None
+    total_cost: float | None = None
+
+
+class RecipeUpdate(BaseModel):
+    """Schema para atualizar uma receita (todos os campos opcionais)."""
+    title: str | None = None
+    category: str | None = None
+    yield_amount: float | None = None
+    yield_unit: str | None = None
+    prep_time_minutes: int | None = None
+    style: str | None = None
+    cost_per_serving: float | None = None
+    total_cost: float | None = None
+    ingredients: list[RecipeIngredientCreate] | None = None
+    steps: list[RecipeStepCreate] | None = None
 
 
 class IngredientInfo(BaseModel):
@@ -46,6 +62,7 @@ class RecipeIngredientResponse(BaseModel):
     amount: float
     unit: str
     notes: str | None = None
+    cost_per_unit: float | None = None
     ingredient: IngredientInfo | None = None
 
     model_config = {"from_attributes": True}
@@ -63,6 +80,8 @@ class RecipeResponse(RecipeBase):
     """Schema de resposta de receita."""
     id: UUID
     created_at: datetime
+    cost_per_serving: float | None = None
+    total_cost: float | None = None
     ingredients: list[RecipeIngredientResponse] = []
     steps: list[RecipeStepResponse] = []
 
@@ -102,8 +121,45 @@ class MenuEntry(BaseModel):
 
 
 class MenuResponse(BaseModel):
-    """Schema de resposta de menu."""
+    """Schema de resposta de menu (sugestão IA)."""
     menus: list[MenuEntry]
+
+
+# ---- Menu CRUD Schemas ----
+
+class MenuItemCreate(BaseModel):
+    """Schema para criar item de menu."""
+    category: str
+    recipe_name: str
+    is_new: bool = False
+
+
+class MenuCreate(BaseModel):
+    """Schema para criar um menu persistível."""
+    title: str
+    occasion: str | None = None
+    items: list[MenuItemCreate] = []
+
+
+class MenuItemResponse(BaseModel):
+    """Schema de resposta de item de menu."""
+    id: UUID
+    category: str
+    recipe_name: str
+    is_new: bool
+
+    model_config = {"from_attributes": True}
+
+
+class MenuFullResponse(BaseModel):
+    """Schema de resposta completa de menu."""
+    id: UUID
+    title: str
+    occasion: str | None = None
+    created_at: datetime
+    items: list[MenuItemResponse] = []
+
+    model_config = {"from_attributes": True}
 
 
 # ---- Chat Schemas ----
@@ -140,8 +196,19 @@ class UserResponse(BaseModel):
     id: UUID
     email: str
     full_name: str
+    phone: str | None = None
+    location: str | None = None
+    specialty: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ProfileUpdate(BaseModel):
+    """Schema para atualizar perfil do usuário."""
+    full_name: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    specialty: str | None = None
 
 
 class MessageResponse(BaseModel):

@@ -1,18 +1,36 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic for registration will go here
-    console.log("Register attempt:", { name, email, password });
+    setError("");
+    setLoading(true);
+
+    try {
+      await api.post("/api/auth/register", {
+        email,
+        password,
+        full_name: name,
+      });
+      router.push("/login");
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Erro ao registrar");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,6 +42,12 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <p className="text-red-500 text-sm text-center font-medium bg-red-500/10 rounded-xl py-2">
+              {error}
+            </p>
+          )}
+
           <div className="space-y-4">
             <div className="space-y-1">
               <label htmlFor="name" className="text-sm font-semibold uppercase tracking-wider text-graphite/40">
@@ -71,10 +95,17 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="group flex w-full items-center justify-between rounded-full bg-graphite px-8 py-4 text-cream transition-all hover:bg-gold active:scale-95"
+            disabled={loading}
+            className="group flex w-full items-center justify-between rounded-full bg-graphite px-8 py-4 text-cream transition-all hover:bg-gold active:scale-95 disabled:opacity-60"
           >
-            <span className="text-lg font-bold">Solicitar Acesso</span>
-            <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            <span className="text-lg font-bold">
+              {loading ? "Registrando..." : "Solicitar Acesso"}
+            </span>
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            )}
           </button>
         </form>
 

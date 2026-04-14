@@ -5,11 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.deps import get_db_session, get_ai_service, get_current_user
-from app.api.schemas.schemas import RecipeCreate, RecipeResponse, RecipeDraft
+from app.api.schemas.schemas import RecipeCreate, RecipeUpdate, RecipeResponse, RecipeDraft
 from app.application.use_cases.recipe_use_cases import (
     CreateRecipeUseCase,
     GetRecipeByIdUseCase,
     ListRecipesUseCase,
+    UpdateRecipeUseCase,
+    DeleteRecipeUseCase,
 )
 from app.application.use_cases.ai_use_cases import AnalyzeImageUseCase
 from app.infrastructure.database.models import UserModel
@@ -60,6 +62,37 @@ async def get_recipe(
     if result is None:
         raise HTTPException(status_code=404, detail="Receita não encontrada")
     return result
+
+
+@router.put("/{recipe_id}", response_model=RecipeResponse)
+async def update_recipe(
+    recipe_id: UUID,
+    recipe: RecipeUpdate,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Atualiza uma receita existente do usuário autenticado."""
+    repo = RecipeRepository(session)
+    use_case = UpdateRecipeUseCase(repository=repo)
+    data = recipe.model_dump(exclude_unset=True)
+    result = await use_case.execute(recipe_id, data, user_id=current_user.id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Receita não encontrada")
+    return result
+
+
+@router.delete("/{recipe_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_recipe(
+    recipe_id: UUID,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Exclui uma receita do usuário autenticado."""
+    repo = RecipeRepository(session)
+    use_case = DeleteRecipeUseCase(repository=repo)
+    deleted = await use_case.execute(recipe_id, user_id=current_user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Receita não encontrada")
 
 
 @router.post("/analyze-image", response_model=RecipeDraft)

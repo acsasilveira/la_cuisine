@@ -40,3 +40,25 @@ class GetRecipeByIdUseCase:
     async def execute(self, recipe_id: UUID, user_id: UUID | None = None):
         """Executa a busca de receita por ID, opcionalmente verificando ownership."""
         return await self.repository.get_by_id(recipe_id, user_id=user_id)
+
+
+class UpdateRecipeUseCase:
+    """Caso de uso: Atualizar receita existente."""
+
+    def __init__(self, repository: RecipeRepositoryPort):
+        self.repository = repository
+
+    async def execute(self, recipe_id: UUID, data: dict, user_id: UUID | None = None):
+        """Executa a atualização de uma receita."""
+        return await self.repository.update(recipe_id, data, user_id=user_id)
+
+
+class DeleteRecipeUseCase:
+    """Caso de uso: Deletar receita."""
+
+    def __init__(self, repository: RecipeRepositoryPort):
+        self.repository = repository
+
+    async def execute(self, recipe_id: UUID, user_id: UUID | None = None) -> bool:
+        """Executa a exclusão de uma receita."""
+        return await self.repository.delete(recipe_id, user_id=user_id)

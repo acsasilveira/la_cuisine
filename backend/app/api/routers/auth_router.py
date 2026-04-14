@@ -1,18 +1,20 @@
-"""Router de autenticação — register, login (cookie), logout."""
+"""Router de autenticação — register, login (cookie), logout, profile."""
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies.deps import get_db_session
+from app.api.dependencies.deps import get_db_session, get_current_user
 from app.api.schemas.schemas import (
     LoginRequest,
     MessageResponse,
+    ProfileUpdate,
     RegisterRequest,
     UserResponse,
 )
 from app.application.use_cases.auth_use_cases import LoginUseCase, RegisterUseCase
 from app.infrastructure.database.user_repository import UserRepository
+from app.infrastructure.database.models import UserModel
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -100,3 +102,28 @@ async def logout(response: Response):
         path="/",
     )
     return {"message": "Logout realizado com sucesso"}
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(
+    current_user: UserModel = Depends(get_current_user),
+):
+    """Retorna os dados do usuário logado."""
+    return current_user
+
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    profile: ProfileUpdate,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Atualiza o perfil do usuário logado."""
+    data = profile.model_dump(exclude_unset=True)
+    for key, value in data.items():
+        setattr(current_user, key, value)
+
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    return current_user

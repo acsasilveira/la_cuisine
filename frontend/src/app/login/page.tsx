@@ -1,17 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic for login will go here
-    console.log("Login attempt:", { email, password });
+    setError("");
+    setLoading(true);
+
+    try {
+      await api.post("/api/auth/login", { email, password });
+      router.push("/");
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Erro ao fazer login");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,6 +37,12 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <p className="text-red-500 text-sm text-center font-medium bg-red-500/10 rounded-xl py-2">
+              {error}
+            </p>
+          )}
+
           <div className="space-y-4">
             <div className="space-y-1">
               <label htmlFor="email" className="text-sm font-semibold uppercase tracking-wider text-graphite/40">
@@ -56,10 +76,17 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="group flex w-full items-center justify-between rounded-full bg-graphite px-8 py-4 text-cream transition-all hover:bg-gold active:scale-95"
+            disabled={loading}
+            className="group flex w-full items-center justify-between rounded-full bg-graphite px-8 py-4 text-cream transition-all hover:bg-gold active:scale-95 disabled:opacity-60"
           >
-            <span className="text-lg font-bold">Entrar no Sistema</span>
-            <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            <span className="text-lg font-bold">
+              {loading ? "Entrando..." : "Entrar no Sistema"}
+            </span>
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            )}
           </button>
         </form>
 

@@ -1,61 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, ChevronDown, ChevronUp, Calendar, Utensils } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, ChevronDown, ChevronUp, Calendar, Utensils, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { api } from "@/lib/api";
 
-interface MenuItem {
-  name: string;
+interface MenuItemData {
+  id: string;
   category: string;
+  recipe_name: string;
+  is_new: boolean;
 }
 
-interface Menu {
+interface MenuData {
   id: string;
   title: string;
-  occasion: string;
-  date: string;
-  items: MenuItem[];
+  occasion: string | null;
+  created_at: string;
+  items: MenuItemData[];
 }
 
-const mockMenus: Menu[] = [
-  {
-    id: "1",
-    title: "Menu Junino Especial",
-    occasion: "Festa Junina",
-    date: "Jun 2026",
-    items: [
-      { name: "Canjica Cremosa", category: "Sobremesa" },
-      { name: "Escondidinho de Charque", category: "Prato Principal" },
-      { name: "Bolo de Milho", category: "Sobremesa" },
-      { name: "Quentão Artesanal", category: "Bebida" },
-    ],
-  },
-  {
-    id: "2",
-    title: "Cardápio Primavera",
-    occasion: "Época / Temporada",
-    date: "Set 2026",
-    items: [
-      { name: "Salada de Flores Comestíveis", category: "Entrada" },
-      { name: "Risoto de Aspargos", category: "Prato Principal" },
-      { name: "Pavlova de Maracujá", category: "Sobremesa" },
-    ],
-  },
-  {
-    id: "3",
-    title: "Ceia de Natal Gourmet",
-    occasion: "Natal",
-    date: "Dez 2026",
-    items: [
-      { name: "Terrine de Foie Gras", category: "Entrada" },
-      { name: "Peru ao Molho de Champagne", category: "Prato Principal" },
-      { name: "Rabanada Trufada", category: "Sobremesa" },
-      { name: "Chester com Ervas Finas", category: "Prato Principal" },
-    ],
-  },
-];
-
-function MenuCard({ menu }: { menu: Menu }) {
+function MenuCard({ menu }: { menu: MenuData }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -69,11 +34,13 @@ function MenuCard({ menu }: { menu: Menu }) {
             <div className="flex items-center gap-3 mt-2">
               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-gold">
                 <Calendar className="h-3 w-3" />
-                {menu.date}
+                {new Date(menu.created_at).toLocaleDateString("pt-BR", { month: "short", year: "numeric" })}
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-graphite/30">
-                {menu.occasion}
-              </span>
+              {menu.occasion && (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-graphite/30">
+                  {menu.occasion}
+                </span>
+              )}
             </div>
           </div>
           <div className="rounded-xl bg-gold/10 p-2">
@@ -99,12 +66,12 @@ function MenuCard({ menu }: { menu: Menu }) {
               className="overflow-hidden"
             >
               <div className="pt-4 space-y-3">
-                {menu.items.map((item, index) => (
+                {menu.items.map((item) => (
                   <div
-                    key={index}
+                    key={item.id}
                     className="flex items-center justify-between rounded-xl bg-cream/50 p-3"
                   >
-                    <span className="font-medium text-graphite text-sm">{item.name}</span>
+                    <span className="font-medium text-graphite text-sm">{item.recipe_name}</span>
                     <span className="text-[9px] font-bold uppercase tracking-widest text-graphite/30 bg-graphite/5 px-2 py-1 rounded-lg">
                       {item.category}
                     </span>
@@ -120,9 +87,31 @@ function MenuCard({ menu }: { menu: Menu }) {
 }
 
 export default function MenusPage() {
+  const [menus, setMenus] = useState<MenuData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchMenus = async () => {
+      try {
+        const response = await api.get("/api/menus");
+        setMenus(response.data);
+      } catch (err: any) {
+        if (err.response?.status === 401) {
+          setError("Faça login para ver seus menus.");
+        } else {
+          setError("Erro ao carregar menus.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenus();
+  }, []);
+
   return (
     <div className="flex flex-col p-4 md:p-8 max-w-4xl mx-auto w-full">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl font-bold text-graphite">Menus de Época</h1>
@@ -130,18 +119,28 @@ export default function MenusPage() {
             Cardápios sazonais e temáticos
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-full bg-gold px-4 py-2 text-xs font-bold uppercase tracking-widest text-cream transition-all hover:bg-graphite active:scale-95">
-          <Plus className="h-4 w-4" />
-          Novo Menu
-        </button>
       </div>
 
-      {/* Menu Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {mockMenus.map((menu) => (
-          <MenuCard key={menu.id} menu={menu} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-20">
+          <p className="text-graphite/40 text-lg">{error}</p>
+        </div>
+      ) : menus.length === 0 ? (
+        <div className="text-center py-20 space-y-3">
+          <p className="font-serif text-2xl text-graphite/30">Nenhum menu criado</p>
+          <p className="text-graphite/40 text-sm">Use o Agente para montar seu primeiro menu de época!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {menus.map((menu) => (
+            <MenuCard key={menu.id} menu={menu} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

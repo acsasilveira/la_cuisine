@@ -242,3 +242,31 @@ Rules:
 - No wildcard CORS
 - Validate input
 - Validate AI output
+
+## 12. Frontend Design & UX (Culinary Zen)
+
+O frontend do LaCuisine segue o conceito **Culinary Zen**, priorizando o minimalismo premium e a eficiência no ambiente de cozinha.
+
+### 12.1 Princípios Básicos
+- **Mobile-First:** Toda a interface é projetada primeiramente para dispositivos móveis.
+- **AI-First:** A interação principal do sistema é através do Agente (Chat).
+- **Interface Limpa:** Uso generoso de espaço negativo e tipografias elegantes.
+
+### 12.2 Identidade Visual
+- **Cores:**
+    - Bege Claro (Creme): `#F4EFE7` (Fundo)
+    - Preto Elegante (Grafite): `#111111` (Textos e Contornos)
+    - Dourado Suave (Ouro): `#C9A46A` (Destaques e Botões)
+- **Tipografia:**
+    - Títulos: *Playfair Display*
+    - Corpo/Interface: *Montserrat*
+
+### 12.3 Estrutura de Telas
+1. **Login/Registro:** Minimalista, apenas campos de dados sobre fundo sólido (sem imagens dispersoras).
+2. **Dashboard (Home):** É a interface de chat com o Agente. Acesso a outras áreas via menu hamburguer.
+3. **Livro de Receitas:** Grid de duas colunas. Cards expandem (via ícone de seta) para mostrar custos e rendimento sem sair da lista.
+4. **Ficha Técnica:** Visual de tabela técnica com edição direta (in-place) para pesos e valores.
+
+### 12.4 Navegação
+- **Menu Hamburguer:** Navegação lateral para acesso ao Livro de Receitas, Menus e Perfil.
+- **Barra de Ação de IA:** Fixa na base da Home (Chat) para inserção de texto ou fotos.

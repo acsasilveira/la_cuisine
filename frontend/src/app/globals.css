@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F4EFE7;
+  --foreground: #111111;
+  --cream: #F4EFE7;
+  --graphite: #111111;
+  --gold: #C9A46A;
+  
+  --card: #F4EFE7;
+  --card-foreground: #111111;
+  --popover: #F4EFE7;
+  --popover-foreground: #111111;
+  --primary: #C9A46A;
+  --primary-foreground: #F4EFE7;
+  --secondary: #111111;
+  --secondary-foreground: #F4EFE7;
+  --muted: #6f6f6f22;
+  --muted-foreground: #6f6f6f;
+  --accent: #C9A46A22;
+  --accent-foreground: #C9A46A;
+  --border: #11111122;
+  --input: #11111122;
+  --ring: #C9A46A;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0A0A0A;
+    --foreground: #F4EFE7;
+    --cream: #0A0A0A;
+    --graphite: #F4EFE7;
+    
+    --card: #111111;
+    --card-foreground: #F4EFE7;
+    --popover: #111111;
+    --popover-foreground: #F4EFE7;
+    --primary: #C9A46A;
+    --primary-foreground: #0A0A0A;
+    --secondary: #F4EFE7;
+    --secondary-foreground: #0A0A0A;
+    --muted: #FFFFFF11;
+    --muted-foreground: #6f6f6f;
+    --accent: #C9A46A33;
+    --accent-foreground: #C9A46A;
+    --border: #FFFFFF11;
+    --input: #FFFFFF11;
+    --ring: #C9A46A;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-graphite: var(--graphite);
+  --color-gold: var(--gold);
+  
+  --font-sans: var(--font-montserrat);
+  --font-serif: var(--font-playfair);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-montserrat), ui-sans-serif, system-ui;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair), ui-serif, Georgia;
+}

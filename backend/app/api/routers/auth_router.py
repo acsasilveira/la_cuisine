@@ -36,6 +36,9 @@ async def register(
             email=request.email,
             password=request.password,
             full_name=request.full_name,
+            phone=request.phone,
+            location=request.location,
+            specialty=request.specialty,
         )
     except ValueError as e:
         raise HTTPException(

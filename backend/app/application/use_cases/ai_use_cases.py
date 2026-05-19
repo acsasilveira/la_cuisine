@@ -40,6 +40,13 @@ class ChatCopilotUseCase:
     def __init__(self, ai_service: AIServicePort):
         self.ai_service = ai_service
 
-    async def execute(self, message: str, context: dict | None = None) -> dict:
+    async def execute(self, message: str, context: dict | None = None, specialty: str | None = None, location: str | None = None) -> dict:
         """Processa mensagem de chat e retorna resposta tipada."""
+        if specialty or location:
+            if context is None:
+                context = {}
+            context["user_profile"] = {
+                "specialty": specialty,
+                "location": location
+            }
         return await self.ai_service.chat(message, context=context)

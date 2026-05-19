@@ -183,6 +183,9 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
     full_name: str
+    phone: str | None = None
+    location: str | None = None
+    specialty: str | None = None
 
 
 class LoginRequest(BaseModel):

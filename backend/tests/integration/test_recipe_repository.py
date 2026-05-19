@@ -119,6 +119,7 @@ class TestRecipeRepositoryGetById:
         assert found is None
 
 
+
 class TestRecipeRepositoryListAll:
     """Testes de integração para RecipeRepository.list_all."""
 
@@ -148,3 +149,55 @@ class TestRecipeRepositoryListAll:
 
         recipes = await repo.list_all()
         assert len(recipes) == 2
+
+    async def test_lista_filtrada_por_usuario(self, integration_session):
+        from app.infrastructure.database.recipe_repository import RecipeRepository
+        repo = RecipeRepository(integration_session)
+        u1, u2 = uuid4(), uuid4()
+        
+        await repo.create({"title": "R1", "category": "main", "yield_amount": 1, "yield_unit": "u", "user_id": u1})
+        await repo.create({"title": "R2", "category": "main", "yield_amount": 1, "yield_unit": "u", "user_id": u2})
+        
+        filtered = await repo.list_all(user_id=u1)
+        assert len(filtered) == 1
+        assert filtered[0].title == "R1"
+
+
+class TestRecipeRepositoryUpdate:
+    """Testes de integração para RecipeRepository.update."""
+
+    async def test_update_campos_simples(self, integration_session):
+        from app.infrastructure.database.recipe_repository import RecipeRepository
+        repo = RecipeRepository(integration_session)
+        recipe = await repo.create({"title": "Old", "category": "main", "yield_amount": 1, "yield_unit": "u"})
+        
+        updated = await repo.update(recipe.id, {"title": "New Title", "yield_amount": 5.0})
+        assert updated.title == "New Title"
+        assert updated.yield_amount == 5.0
+
+    async def test_update_receita_inexistente_retorna_none(self, integration_session):
+        from app.infrastructure.database.recipe_repository import RecipeRepository
+        repo = RecipeRepository(integration_session)
+        result = await repo.update(uuid4(), {"title": "X"})
+        assert result is None
+
+
+class TestRecipeRepositoryDelete:
+    """Testes de integração para RecipeRepository.delete."""
+
+    async def test_delete_sucesso(self, integration_session):
+        from app.infrastructure.database.recipe_repository import RecipeRepository
+        repo = RecipeRepository(integration_session)
+        recipe = await repo.create({"title": "Delete me", "category": "main", "yield_amount": 1, "yield_unit": "u"})
+        
+        result = await repo.delete(recipe.id)
+        assert result is True
+        
+        found = await repo.get_by_id(recipe.id)
+        assert found is None
+
+    async def test_delete_id_inexistente_retorna_false(self, integration_session):
+        from app.infrastructure.database.recipe_repository import RecipeRepository
+        repo = RecipeRepository(integration_session)
+        result = await repo.delete(uuid4())
+        assert result is False

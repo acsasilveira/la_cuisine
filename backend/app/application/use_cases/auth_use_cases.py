@@ -10,7 +10,7 @@ class RegisterUseCase:
     def __init__(self, repository: UserRepositoryPort):
         self.repository = repository
 
-    async def execute(self, email: str, password: str, full_name: str):
+    async def execute(self, email: str, password: str, full_name: str, phone: str | None = None, location: str | None = None, specialty: str | None = None):
         """Registra um novo usuário com senha hasheada."""
         existing = await self.repository.get_by_email(email)
         if existing:
@@ -21,6 +21,9 @@ class RegisterUseCase:
             "email": email,
             "full_name": full_name,
             "hashed_password": hashed,
+            "phone": phone,
+            "location": location,
+            "specialty": specialty,
         })
         return user
 

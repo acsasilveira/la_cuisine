@@ -25,6 +25,8 @@ async def chat_copilot(
         result = await use_case.execute(
             message=request.message,
             context=request.context,
+            specialty=current_user.specialty,
+            location=current_user.location,
         )
         return ChatResponse(**result)
     except ValueError:

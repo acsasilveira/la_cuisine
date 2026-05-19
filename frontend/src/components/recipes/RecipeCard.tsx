@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface Recipe {
@@ -33,9 +34,12 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
       </div>
 
       <div className="p-3 sm:p-4">
-        <h3 className="font-serif text-lg sm:text-xl font-bold leading-tight text-graphite mb-3">
-          {recipe.title}
-        </h3>
+        <Link href={`/recipes/${recipe.id}`} className="group/link flex items-start justify-between mb-3">
+            <h3 className="font-serif text-lg sm:text-xl font-bold leading-tight text-graphite group-hover/link:text-gold transition-colors">
+            {recipe.title}
+            </h3>
+            <ArrowUpRight className="h-4 w-4 text-graphite/30 group-hover/link:text-gold shrink-0 mt-1 transition-colors" />
+        </Link>
 
         <button
           onClick={() => setIsExpanded(!isExpanded)}

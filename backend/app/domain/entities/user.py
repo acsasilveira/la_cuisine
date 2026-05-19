@@ -7,3 +7,6 @@ class UserBase(BaseModel):
 
     email: EmailStr
     full_name: str
+    phone: str | None = None
+    location: str | None = None
+    specialty: str | None = None

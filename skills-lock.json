@@ -5,6 +5,12 @@
       "source": "google-gemini/gemini-skills",
       "sourceType": "github",
       "computedHash": "d521744b97bfe7847e7abc7b80e447fb1a5edc30d49f94b390db41318e1bdc4b"
+    },
+    "neon-postgres": {
+      "source": "neondatabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/neon-postgres/SKILL.md",
+      "computedHash": "998294d9102bfdcd25a246f8fc2323148f5dae9b82a04c6baf2a3de388b95608"
     }
   }
 }

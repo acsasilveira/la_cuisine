@@ -2,24 +2,23 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { api } from "@/lib/api";
+import { User } from "@/domain/entities/User";
+import { HttpAuthRepository } from "@/data/repositories/HttpAuthRepository";
 
-interface User {
-  id: string;
-  email: string;
-  full_name: string;
-}
+const authRepository = new HttpAuthRepository();
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   logout: async () => {},
+  setUser: () => {},
 });
 
 export function useAuth() {
@@ -43,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const response = await api.get("/api/auth/me");
-        setUser(response.data);
+        const domainUser = await authRepository.getMe();
+        setUser(domainUser);
       } catch {
         // Não autenticado — redirecionar pro login
         router.push("/login");
@@ -58,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await api.post("/api/auth/logout");
+      await authRepository.logout();
     } catch {
       // Ignorar erros de logout
     }
@@ -67,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

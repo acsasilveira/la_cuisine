@@ -1,44 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { RecipeCard } from "./RecipeCard";
-import { api } from "@/lib/api";
+import { useRecipes } from "@/hooks/useRecipes";
 import { Loader2 } from "lucide-react";
 
-interface Recipe {
-  id: string;
-  title: string;
-  category: string;
-  image_url?: string;
-  cost_per_serving?: number;
-  total_cost?: number;
-  yield_amount: number;
-  yield_unit: string;
-}
-
 export function RecipeGrid() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { recipes, loading, error, fetchRecipes } = useRecipes();
 
   useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        const response = await api.get("/api/recipes");
-        setRecipes(response.data);
-      } catch (err: any) {
-        if (err.response?.status === 401) {
-          setError("Faça login para ver suas receitas.");
-        } else {
-          setError("Erro ao carregar receitas.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRecipes();
-  }, []);
+  }, [fetchRecipes]);
 
   if (loading) {
     return (
@@ -71,12 +43,12 @@ export function RecipeGrid() {
         <RecipeCard
           key={recipe.id}
           recipe={{
-            id: recipe.id,
+            id: recipe.id || "",
             title: recipe.title,
             category: recipe.category,
-            image: recipe.image_url || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=800&auto=format&fit=crop",
-            cost: recipe.total_cost ? `R$ ${recipe.total_cost.toFixed(2)}` : "Não calculado",
-            yield: `${recipe.yield_amount} ${recipe.yield_unit}`,
+            image: recipe.imageUrl || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=800&auto=format&fit=crop",
+            cost: recipe.totalCost ? `R$ ${recipe.totalCost.toFixed(2)}` : "Não calculado",
+            yield: `${recipe.yieldAmount} ${recipe.yieldUnit}`,
           }}
         />
       ))}

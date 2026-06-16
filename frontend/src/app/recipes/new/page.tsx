@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, Loader2, ImagePlus } from "lucide-react";
 import Link from "next/link";
-import { api } from "@/lib/api";
+import { useRecipes } from "@/hooks/useRecipes";
+import { validateRecipe } from "@/domain/entities/Recipe";
 
 export default function NewRecipePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { createRecipe, loading, error, setError } = useRecipes();
   
   // Recipe form state
   const [title, setTitle] = useState("");
@@ -37,7 +37,7 @@ export default function NewRecipePage() {
     setIngredients(newIngredients);
   };
 
-  const handleUpdateIngredient = (index: number, field: string, value: any) => {
+  const handleUpdateIngredient = (index: number, field: string, value: string | number) => {
     const newIngredients = [...ingredients];
     newIngredients[index] = { ...newIngredients[index], [field]: value };
     setIngredients(newIngredients);
@@ -63,41 +63,39 @@ export default function NewRecipePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
-    // Filter out empty ingredients/steps before sending
-    const validIngredients = ingredients.filter(i => i.name.trim() !== "");
-    const validSteps = steps.filter(s => s.instruction.trim() !== "");
-
-    if (validIngredients.length === 0) {
-      setError("Adicione pelo menos um ingrediente.");
-      setLoading(false);
-      return;
-    }
+    // Filter and map fields to camelCase structure for domain validation & repository
+    const validIngredients = ingredients
+      .filter(i => i.name.trim() !== "")
+      .map(i => ({ name: i.name, amount: Number(i.amount), unit: i.unit }));
     
-    if (validSteps.length === 0) {
-      setError("Adicione pelo menos um passo de preparo.");
-      setLoading(false);
+    const validSteps = steps
+      .filter(s => s.instruction.trim() !== "")
+      .map((s, idx) => ({ stepNumber: idx + 1, instruction: s.instruction }));
+
+    const recipeToCreate = {
+      title,
+      category,
+      yieldAmount: Number(yieldAmount),
+      yieldUnit,
+      prepTimeMinutes: Number(prepTime),
+      style,
+      ingredients: validIngredients,
+      steps: validSteps,
+    };
+
+    const validationErrors = validateRecipe(recipeToCreate);
+    if (Object.keys(validationErrors).length > 0) {
+      setError(Object.values(validationErrors)[0] || "Erro de validação");
       return;
     }
 
     try {
-      await api.post("/api/recipes", {
-        title,
-        category,
-        yield_amount: Number(yieldAmount),
-        yield_unit: yieldUnit,
-        prep_time_minutes: Number(prepTime),
-        style,
-        ingredients: validIngredients,
-        steps: validSteps
-      });
+      await createRecipe(recipeToCreate);
       router.push("/recipes");
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Erro ao salvar receita.");
-    } finally {
-      setLoading(false);
+    } catch {
+      // Error state is already set by hook
     }
   };
 

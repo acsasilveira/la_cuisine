@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { HttpAuthRepository } from "@/data/repositories/HttpAuthRepository";
+import { validateUser } from "@/domain/entities/User";
+
+const authRepository = new HttpAuthRepository();
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,11 +21,19 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
+    const validationErrors = validateUser({ email, password });
+    if (validationErrors.email || validationErrors.password) {
+      setError(validationErrors.email || validationErrors.password || "");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await api.post("/api/auth/login", { email, password });
+      await authRepository.login(email, password);
       router.push("/");
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Erro ao fazer login");
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { detail?: string } } };
+      setError(apiError.response?.data?.detail || "Erro ao fazer login");
     } finally {
       setLoading(false);
     }

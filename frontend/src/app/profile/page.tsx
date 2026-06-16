@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Mail, Phone, MapPin, ChefHat, Edit3, Save, Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { User as UserIcon, Mail, Phone, MapPin, ChefHat, Edit3, Save, Loader2 } from "lucide-react";
+import { HttpAuthRepository } from "@/data/repositories/HttpAuthRepository";
+import { validateUser } from "@/domain/entities/User";
+import { useAuth } from "@/providers/AuthProvider";
+
+const authRepository = new HttpAuthRepository();
 
 export default function ProfilePage() {
+  const { setUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [profile, setProfile] = useState({
-    full_name: "",
+    fullName: "",
     email: "",
     phone: "",
     location: "",
@@ -20,16 +25,17 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.get("/api/auth/me");
+        const domainUser = await authRepository.getMe();
         setProfile({
-          full_name: response.data.full_name || "",
-          email: response.data.email || "",
-          phone: response.data.phone || "",
-          location: response.data.location || "",
-          specialty: response.data.specialty || "",
+          fullName: domainUser.fullName || "",
+          email: domainUser.email || "",
+          phone: domainUser.phone || "",
+          location: domainUser.location || "",
+          specialty: domainUser.specialty || "",
         });
-      } catch (err: any) {
-        setError(err.response?.status === 401 ? "Faça login para ver seu perfil." : "Erro ao carregar perfil.");
+      } catch (err: unknown) {
+        const apiError = err as { response?: { status?: number } };
+        setError(apiError.response?.status === 401 ? "Faça login para ver seu perfil." : "Erro ao carregar perfil.");
       } finally {
         setLoading(false);
       }
@@ -39,21 +45,32 @@ export default function ProfilePage() {
   }, []);
 
   const handleSave = async () => {
+    setError("");
     setSaving(true);
+
+    const validationErrors = validateUser({ fullName: profile.fullName });
+    if (validationErrors.fullName) {
+      setError(validationErrors.fullName || "");
+      setSaving(false);
+      return;
+    }
+
     try {
-      const response = await api.put("/api/auth/profile", {
-        full_name: profile.full_name,
-        phone: profile.phone || null,
-        location: profile.location || null,
-        specialty: profile.specialty || null,
-      });
+      const updatedUser = await authRepository.updateProfile(
+        profile.fullName,
+        profile.phone || null,
+        profile.location || null,
+        profile.specialty || null
+      );
       setProfile({
-        ...profile,
-        full_name: response.data.full_name,
-        phone: response.data.phone || "",
-        location: response.data.location || "",
-        specialty: response.data.specialty || "",
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        phone: updatedUser.phone || "",
+        location: updatedUser.location || "",
+        specialty: updatedUser.specialty || "",
       });
+      // Atualizar o estado global para atualizar na Sidebar imediatamente
+      setUser(updatedUser);
       setIsEditing(false);
     } catch {
       setError("Erro ao salvar perfil.");
@@ -63,7 +80,7 @@ export default function ProfilePage() {
   };
 
   const fields = [
-    { key: "full_name" as const, label: "Nome do Chef", icon: User },
+    { key: "fullName" as const, label: "Nome do Chef", icon: UserIcon },
     { key: "email" as const, label: "E-mail", icon: Mail, readOnly: true },
     { key: "phone" as const, label: "Telefone", icon: Phone },
     { key: "location" as const, label: "Localização", icon: MapPin },
@@ -105,11 +122,17 @@ export default function ProfilePage() {
         </button>
       </div>
 
+      {error && (
+        <div className="bg-red-500/10 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium">
+          {error}
+        </div>
+      )}
+
       <div className="flex flex-col items-center mb-10">
         <div className="relative h-24 w-24 rounded-full bg-gold/10 flex items-center justify-center mb-4">
           <ChefHat className="h-10 w-10 text-gold" />
         </div>
-        <h2 className="font-serif text-2xl font-bold text-graphite">{profile.full_name}</h2>
+        <h2 className="font-serif text-2xl font-bold text-graphite">{profile.fullName}</h2>
         <p className="text-graphite/40 text-sm mt-1">{profile.specialty || "Chef"}</p>
       </div>
 

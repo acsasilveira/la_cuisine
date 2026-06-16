@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { HttpAuthRepository } from "@/data/repositories/HttpAuthRepository";
+import { validateUser } from "@/domain/entities/User";
+
+const authRepository = new HttpAuthRepository();
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,15 +22,24 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
+    const validationErrors = validateUser({ fullName: name, email, password });
+    if (validationErrors.fullName || validationErrors.email || validationErrors.password) {
+      setError(
+        validationErrors.fullName ||
+        validationErrors.email ||
+        validationErrors.password ||
+        ""
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
-      await api.post("/api/auth/register", {
-        email,
-        password,
-        full_name: name,
-      });
+      await authRepository.register(email, password, name);
       router.push("/login");
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Erro ao registrar");
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { detail?: string } } };
+      setError(apiError.response?.data?.detail || "Erro ao registrar");
     } finally {
       setLoading(false);
     }

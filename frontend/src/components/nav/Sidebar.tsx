@@ -24,7 +24,7 @@ export function Sidebar() {
           LaCuisine
         </span>
         {user && (
-          <p className="text-xs text-graphite/40 mt-1 truncate">Olá, {user.full_name}</p>
+          <p className="text-xs text-graphite/40 mt-1 truncate">Olá, {user.fullName}</p>
         )}
       </div>
 

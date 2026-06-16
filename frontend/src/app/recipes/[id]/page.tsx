@@ -4,64 +4,31 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Clock, Users, Flame, Tag, Trash2, Edit3, Loader2, Scale } from "lucide-react";
 import Link from "next/link";
-import { api } from "@/lib/api";
-
-interface RecipeDetail {
-  id: string;
-  title: string;
-  category: string;
-  prep_time_minutes: number;
-  yield_amount: number;
-  yield_unit: string;
-  style: string;
-  total_cost?: number;
-  cost_per_serving?: number;
-  ingredients: {
-    amount: number;
-    unit: string;
-    notes?: string;
-    ingredient: { name: string };
-  }[];
-  steps: {
-    step_number: number;
-    instruction: string;
-  }[];
-}
+import { useRecipes } from "@/hooks/useRecipes";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   
-  const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { recipe, loading, error, fetchRecipe, deleteRecipe } = useRecipes();
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const fetchRecipe = async () => {
-      try {
-        const response = await api.get(`/api/recipes/${id}`);
-        setRecipe(response.data);
-      } catch (err: any) {
-        setError(err.response?.status === 404 ? "Receita não encontrada." : "Erro ao carregar receita.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchRecipe();
+    if (id && typeof id === "string") {
+      fetchRecipe(id);
     }
-  }, [id]);
+  }, [id, fetchRecipe]);
 
   const handleDelete = async () => {
     if (!window.confirm("Deseja realmente apagar esta receita? Ela será apagada e caso seja usada em algum Menu, os Menus relatarão dados passados.")) return;
     
     setIsDeleting(true);
     try {
-      await api.delete(`/api/recipes/${id}`);
-      router.push("/recipes");
-    } catch (err) {
+      if (id && typeof id === "string") {
+        await deleteRecipe(id);
+        router.push("/recipes");
+      }
+    } catch {
       alert("Erro ao excluir a receita.");
       setIsDeleting(false);
     }
@@ -110,11 +77,11 @@ export default function RecipeDetailPage() {
             <div className="flex flex-wrap items-center gap-6 text-sm text-graphite/60 font-medium">
                 <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-gold" />
-                    {recipe.prep_time_minutes} minutos
+                    {recipe.prepTimeMinutes} minutos
                 </div>
                 <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-gold" />
-                    Rende {recipe.yield_amount} {recipe.yield_unit}
+                    Rende {recipe.yieldAmount} {recipe.yieldUnit}
                 </div>
             </div>
           </div>
@@ -144,7 +111,7 @@ export default function RecipeDetailPage() {
       {/* Hero Image Placeholder */}
       <div className="w-full aspect-[21/9] bg-graphite/5 rounded-3xl mb-12 overflow-hidden relative">
          <img 
-            src="https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=2000&auto=format&fit=crop" 
+            src={recipe.imageUrl || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=2000&auto=format&fit=crop"} 
             alt="Recipe Visual" 
             className="w-full h-full object-cover opacity-80"
          />
@@ -160,11 +127,11 @@ export default function RecipeDetailPage() {
                 <div className="space-y-4">
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-graphite/40 mb-1">Custo Total Previsto</p>
-                        <p className="font-serif text-xl tracking-tight">{recipe.total_cost ? `R$ ${recipe.total_cost.toFixed(2)}` : "Não calculado"}</p>
+                        <p className="font-serif text-xl tracking-tight">{recipe.totalCost ? `R$ ${recipe.totalCost.toFixed(2)}` : "Não calculado"}</p>
                     </div>
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-graphite/40 mb-1">Custo por Porção / Unidade</p>
-                        <p className="font-serif text-xl tracking-tight text-gold">{recipe.cost_per_serving ? `R$ ${recipe.cost_per_serving.toFixed(2)}` : "Não calculado"}</p>
+                        <p className="font-serif text-xl tracking-tight text-gold">{recipe.costPerServing ? `R$ ${recipe.costPerServing.toFixed(2)}` : "Não calculado"}</p>
                     </div>
                 </div>
             </div>
@@ -174,7 +141,7 @@ export default function RecipeDetailPage() {
                 <ul className="space-y-4">
                     {recipe.ingredients.map((ing, i) => (
                         <li key={i} className="flex items-baseline justify-between border-b border-graphite/5 pb-3">
-                            <span className="text-graphite font-medium">{ing.ingredient?.name || `Ingrediente ${i+1}`}</span>
+                            <span className="text-graphite font-medium">{ing.name || `Ingrediente ${i+1}`}</span>
                             <span className="text-graphite/50 text-sm">{ing.amount} {ing.unit}</span>
                         </li>
                     ))}
@@ -192,13 +159,13 @@ export default function RecipeDetailPage() {
             </h3>
             
             <div className="space-y-10 pl-2">
-                {recipe.steps.sort((a,b) => a.step_number - b.step_number).map((step, i) => (
+                {recipe.steps.sort((a,b) => a.stepNumber - b.stepNumber).map((step, i) => (
                     <div key={i} className="relative pl-10">
                         {/* Indicador Numérico na Timeline */}
                         <div className="absolute left-0 top-0 flex items-center justify-center w-8 h-8 rounded-full bg-gold/10 text-gold font-serif font-bold -ml-[4px]">
-                            {step.step_number}
+                            {step.stepNumber}
                         </div>
-                        {/* Linha vertical timeline (excepto o ultimmo) */}
+                        {/* Linha vertical timeline (excepto o ultimo) */}
                         {i !== recipe.steps.length - 1 && (
                             <div className="absolute left-[11px] top-10 bottom-[-32px] w-[2px] bg-graphite/5"></div>
                         )}

@@ -20,6 +20,9 @@ async def recipe_error_client(mock_recipe_user):
     
     async def override_db():
         session = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        session.execute.return_value = mock_result
         yield session
 
     app.dependency_overrides[get_ai_service] = lambda: mock_ai

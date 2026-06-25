@@ -25,8 +25,8 @@ class UserModel(UserBase, SQLModel, table=True):
     phone: str | None = None
     location: str | None = None
     specialty: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     recipes: list["RecipeModel"] = Relationship(back_populates="owner")
@@ -45,7 +45,7 @@ class RecipeModel(RecipeBase, SQLModel, table=True):
     image_url: str | None = None
     cost_per_serving: float | None = None
     total_cost: float | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     owner: UserModel | None = Relationship(back_populates="recipes")
@@ -105,7 +105,7 @@ class MenuModel(SQLModel, table=True):
     title: str
     occasion: str | None = None
     user_id: UUID | None = Field(default=None, foreign_key="users.id")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     items: list["MenuItemModel"] = Relationship(back_populates="menu")

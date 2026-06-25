@@ -99,6 +99,7 @@ async def delete_recipe(
 async def analyze_image(
     file: UploadFile = File(...),
     current_user: UserModel = Depends(get_current_user),
+    ai_service = Depends(get_ai_service),
 ):
     """Analisa uma imagem e extrai dados de receita via IA."""
     # Validar que é imagem
@@ -106,7 +107,6 @@ async def analyze_image(
         raise HTTPException(status_code=400, detail="Arquivo deve ser uma imagem")
 
     image_bytes = await file.read()
-    ai_service = get_ai_service()
     use_case = AnalyzeImageUseCase(ai_service=ai_service)
 
     try:

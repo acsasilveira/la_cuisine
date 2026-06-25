@@ -89,10 +89,10 @@ async def suggest_menu(
     request: MenuSuggestRequest,
     current_user: UserModel = Depends(get_current_user),
     session: AsyncSession = Depends(get_db_session),
+    ai_service = Depends(get_ai_service),
 ):
     """Gera sugestão de menu com IA baseado em receitas disponíveis."""
     repo = RecipeRepository(session)
-    ai_service = get_ai_service()
     use_case = SuggestMenuUseCase(ai_service=ai_service, repository=repo)
 
     try:

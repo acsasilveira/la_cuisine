@@ -3,9 +3,9 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+COPY . .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir ".[dev]"
+    pip install --no-cache-dir "."
 
 # ---------- Runtime Stage ----------
 FROM python:3.11-slim
@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -45,6 +45,18 @@ async def startup_event():
 
         configure_db(settings.DATABASE_URL)
         configure_auth(settings.JWT_SECRET, settings.JWT_ALGORITHM)
+
+        # Executa as migrações do banco de dados automaticamente no startup
+        try:
+            print("Running database migrations...")
+            from alembic.config import Config
+            from alembic import command
+            alembic_cfg = Config("alembic.ini")
+            command.upgrade(alembic_cfg, "head")
+            print("Database migrations applied successfully!")
+        except Exception as migration_error:
+            print(f"⚠️ Failed to run database migrations: {migration_error}")
+
     except Exception as e:
         print(f"⚠️ Config error (ok em testes): {e}")
 

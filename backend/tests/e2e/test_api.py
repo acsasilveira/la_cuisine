@@ -253,7 +253,7 @@ class TestRecipeEndpointsAuthenticated:
             "yield_amount": 12.0,
             "yield_unit": "fatias",
         })
-        assert response.status_code == 201
+        assert response.status_code == 201, f"Status: {response.status_code}, Body: {response.text}"
         data = response.json()
         assert data["title"] == "Bolo de Chocolate"
         assert "id" in data

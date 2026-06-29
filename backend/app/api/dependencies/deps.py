@@ -61,9 +61,15 @@ async def get_current_user(
 
     payload = verify_token(token, secret, algorithm)
     if payload is None:
+        from jose import jwt
+        msg = "unknown error"
+        try:
+            jwt.decode(token, secret, algorithms=[algorithm])
+        except Exception as e:
+            msg = str(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sessão inválida",
+            detail=f"DEBUG_FAIL: secret={secret} algorithm={algorithm} token_len={len(token)} error={msg}",
         )
 
     user_id_str = payload.get("sub")

@@ -55,7 +55,11 @@ async def get_current_user(
             detail="Não autenticado",
         )
 
-    payload = verify_token(token, _jwt_secret, _jwt_algorithm)
+    from app.config import settings
+    secret = _jwt_secret if _jwt_secret is not None else settings.JWT_SECRET
+    algorithm = _jwt_algorithm if _jwt_algorithm is not None else settings.JWT_ALGORITHM
+
+    payload = verify_token(token, secret, algorithm)
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

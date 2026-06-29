@@ -117,10 +117,60 @@ export default function MenusPage() {
   const [suggestCategory, setSuggestCategory] = useState("Entrada");
   const [isSuggesting, setIsSuggesting] = useState(false);
 
+  // Manual Menu Creation State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createTitle, setCreateTitle] = useState("");
+  const [createOccasion, setCreateOccasion] = useState("");
+  const [createEntrada, setCreateEntrada] = useState("");
+  const [createPrincipal, setCreatePrincipal] = useState("");
+  const [createSobremesa, setCreateSobremesa] = useState("");
+  const [isCreatingManual, setIsCreatingManual] = useState(false);
+
   useEffect(() => {
     fetchMenus();
     fetchRecipes();
   }, [fetchMenus, fetchRecipes]);
+
+  const handleOpenCreateModal = () => {
+    setCreateTitle("");
+    setCreateOccasion("");
+    setCreateEntrada("");
+    setCreatePrincipal("");
+    setCreateSobremesa("");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreatingManual(true);
+    
+    const newMenu: Omit<Menu, "id" | "createdAt"> = {
+      title: createTitle,
+      occasion: createOccasion.trim() || null,
+      items: [
+        ...(createEntrada.trim() ? [{ category: "Entrada", recipeName: createEntrada.trim(), isNew: false }] : []),
+        ...(createPrincipal.trim() ? [{ category: "Prato Principal", recipeName: createPrincipal.trim(), isNew: false }] : []),
+        ...(createSobremesa.trim() ? [{ category: "Sobremesa", recipeName: createSobremesa.trim(), isNew: false }] : []),
+      ],
+    };
+
+    const validationErrors = validateMenu(newMenu);
+    if (Object.keys(validationErrors).length > 0) {
+      alert(Object.values(validationErrors)[0]);
+      setIsCreatingManual(false);
+      return;
+    }
+
+    try {
+      await createMenu(newMenu);
+      setIsCreateModalOpen(false);
+      fetchMenus(); // reload list
+    } catch {
+      alert("Erro ao criar menu.");
+    } finally {
+      setIsCreatingManual(false);
+    }
+  };
 
   const handleSuggestionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,7 +199,7 @@ export default function MenusPage() {
         }
 
         await createMenu(newMenu);
-        setIsSuggestModalOpen(false);
+        setIsSuggestOpenModal(false);
         fetchMenus(); // reload to show new menu
     } catch {
         alert("Erro ao sugerir menu com IA. Tem certeza que a API Key é válida?");
@@ -158,11 +208,21 @@ export default function MenusPage() {
     }
   };
 
+  // Helper function to rename references to matches
+  const setIsSuggestOpenModal = (open: boolean) => {
+    setIsSuggestModalOpen(open);
+  };
+
   // Local state update when onDelete is triggered from MenuCard
   const [localMenus, setLocalMenus] = useState<Menu[]>([]);
   useEffect(() => {
     setLocalMenus(menus);
   }, [menus]);
+
+  // Autocomplete recipes lists grouped by categories
+  const starterRecipes = recipes.filter((r) => r.category.toLowerCase().includes("entrada"));
+  const mainRecipes = recipes.filter((r) => r.category.toLowerCase().includes("principal"));
+  const dessertRecipes = recipes.filter((r) => r.category.toLowerCase().includes("sobremesa"));
 
   return (
     <div className="flex flex-col p-4 md:p-8 max-w-4xl mx-auto w-full relative">
@@ -183,6 +243,7 @@ export default function MenusPage() {
                 <span>Sugerir (IA)</span>
             </button>
             <button 
+                onClick={handleOpenCreateModal}
                 className="flex items-center justify-center gap-2 rounded-full bg-graphite text-cream px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition-all hover:bg-gold active:scale-95 cursor-pointer"
             >
                 <Plus className="h-4 w-4" />
@@ -269,6 +330,112 @@ export default function MenusPage() {
                   <><Loader2 className="h-4 w-4 animate-spin" /> Harmonizando... (Pode demorar)</>
                 ) : (
                   <><Sparkles className="h-4 w-4" /> Gerar Menu</>
+                )}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Menu Creation Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="bg-cream rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative border border-gold/20">
+          <DialogHeader className="flex items-center gap-3 mb-6 flex-row">
+            <div className="bg-gold/10 p-3 rounded-full">
+              <Plus className="h-5 w-5 text-gold" />
+            </div>
+            <DialogTitle className="font-serif text-2xl font-bold text-graphite">Criar Menu Manual</DialogTitle>
+          </DialogHeader>
+
+          <DialogDescription className="text-sm text-graphite/60 mb-6">
+            Preencha os detalhes do menu e defina quais pratos farão parte de cada etapa do cardápio.
+          </DialogDescription>
+
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-graphite/60">Nome do Menu</label>
+              <input
+                required
+                type="text"
+                placeholder="Ex: Menu Especial de Fim de Ano"
+                value={createTitle}
+                onChange={(e) => setCreateTitle(e.target.value)}
+                className="w-full border-b border-graphite/20 bg-transparent py-2.5 text-base outline-none focus:border-gold transition-colors text-graphite"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-graphite/60">Ocasião</label>
+              <input
+                type="text"
+                placeholder="Ex: Jantar em Família"
+                value={createOccasion}
+                onChange={(e) => setCreateOccasion(e.target.value)}
+                className="w-full border-b border-graphite/20 bg-transparent py-2.5 text-base outline-none focus:border-gold transition-colors text-graphite"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-graphite/60">Entrada</label>
+              <input
+                type="text"
+                list="starter-options"
+                placeholder="Selecione ou digite a entrada"
+                value={createEntrada}
+                onChange={(e) => setCreateEntrada(e.target.value)}
+                className="w-full border-b border-graphite/20 bg-transparent py-2.5 text-base outline-none focus:border-gold transition-colors text-graphite"
+              />
+              <datalist id="starter-options">
+                {starterRecipes.map((r) => (
+                  <option key={r.id} value={r.title} />
+                ))}
+              </datalist>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-graphite/60">Prato Principal</label>
+              <input
+                type="text"
+                list="main-options"
+                placeholder="Selecione ou digite o prato principal"
+                value={createPrincipal}
+                onChange={(e) => setCreatePrincipal(e.target.value)}
+                className="w-full border-b border-graphite/20 bg-transparent py-2.5 text-base outline-none focus:border-gold transition-colors text-graphite"
+              />
+              <datalist id="main-options">
+                {mainRecipes.map((r) => (
+                  <option key={r.id} value={r.title} />
+                ))}
+              </datalist>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-graphite/60">Sobremesa</label>
+              <input
+                type="text"
+                list="dessert-options"
+                placeholder="Selecione ou digite a sobremesa"
+                value={createSobremesa}
+                onChange={(e) => setCreateSobremesa(e.target.value)}
+                className="w-full border-b border-graphite/20 bg-transparent py-2.5 text-base outline-none focus:border-gold transition-colors text-graphite"
+              />
+              <datalist id="dessert-options">
+                {dessertRecipes.map((r) => (
+                  <option key={r.id} value={r.title} />
+                ))}
+              </datalist>
+            </div>
+
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={isCreatingManual || !createTitle.trim()}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-graphite px-6 py-4 text-sm font-bold tracking-widest text-cream transition-all hover:bg-gold disabled:opacity-50 cursor-pointer"
+              >
+                {isCreatingManual ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+                ) : (
+                  <><Plus className="h-4 w-4" /> Criar Menu</>
                 )}
               </button>
             </div>

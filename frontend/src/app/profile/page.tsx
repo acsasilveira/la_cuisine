@@ -220,7 +220,7 @@ export default function ProfilePage() {
       )
         .then((res) => res.json())
         .then((data) => {
-          setCities(data.map((city: any) => city.nome));
+          setCities(data.map((city: { nome: string }) => city.nome));
         })
         .catch((err) => {
           console.error("Erro ao carregar cidades:", err);

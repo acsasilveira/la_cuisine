@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, Loader2, ImagePlus } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +26,60 @@ export default function NewRecipePage() {
   const [steps, setSteps] = useState<{step_number: number, instruction: string}[]>([
     { step_number: 1, instruction: "" }
   ]);
+
+  // Load recipe draft from sessionStorage
+  useEffect(() => {
+    const pendingDraft = sessionStorage.getItem("pending_recipe_draft");
+    if (pendingDraft) {
+      sessionStorage.removeItem("pending_recipe_draft");
+      try {
+        const draft = JSON.parse(pendingDraft);
+        const categoryMap: Record<string, string> = {
+          appetizer: "Entrada",
+          main: "Prato Principal",
+          dessert: "Sobremesa",
+          other: "Outro"
+        };
+        const translatedCategory = categoryMap[draft.category?.toLowerCase()] || "Prato Principal";
+
+        setTitle(draft.title || "");
+        setCategory(translatedCategory);
+        setYieldAmount(draft.yield_amount || 1);
+        setYieldUnit(draft.yield_unit || "porção");
+        setPrepTime(draft.prep_time_minutes || 30);
+        setStyle(draft.style || "Clássica");
+        
+        if (draft.ingredients && Array.isArray(draft.ingredients)) {
+          setIngredients(draft.ingredients.map((i: any) => ({
+            name: i.name || "",
+            amount: i.amount || 1,
+            unit: i.unit || "unidade"
+          })));
+        }
+        if (draft.steps && Array.isArray(draft.steps)) {
+          setSteps(draft.steps.map((stepText: string, idx: number) => ({
+            step_number: idx + 1,
+            instruction: stepText
+          })));
+        }
+      } catch (err) {
+        console.error("Erro ao fazer parse do rascunho de receita:", err);
+      }
+    }
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      sessionStorage.setItem("pending_recipe_image", base64String);
+      router.push("/");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleAddIngredient = () => {
     setIngredients([...ingredients, { name: "", amount: 1, unit: "unidade" }]);
@@ -128,16 +182,22 @@ export default function NewRecipePage() {
         </div>
       )}
 
-      {/* Draft IA Upload Button - Placeholder for upcoming IA integration */}
+      {/* Draft IA Upload Button - IA integration */}
       <div className="mb-8 rounded-2xl border border-dashed border-graphite/20 bg-graphite/5 p-6 flex flex-col items-center justify-center text-center">
         <div className="rounded-full bg-gold/10 p-3 mb-3">
           <ImagePlus className="h-6 w-6 text-gold" />
         </div>
         <h3 className="font-bold text-graphite mb-1">Preencher via Inteligência Artificial</h3>
         <p className="text-xs text-graphite/50 max-w-sm mb-4">Envie uma foto de um livro ou anotação para o Agente ler e extrair nome, ingredientes e passo a passo automaticamente.</p>
-        <button className="text-[10px] font-bold uppercase tracking-widest bg-cream border border-graphite/10 px-4 py-2 rounded-full text-graphite/60 hover:text-gold hover:border-gold transition-colors">
+        <label className="text-[10px] font-bold uppercase tracking-widest bg-cream border border-graphite/10 px-4 py-2 rounded-full text-graphite/60 hover:text-gold hover:border-gold transition-colors cursor-pointer">
           Upload de imagem
-        </button>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+        </label>
       </div>
 
       <div className="space-y-8">

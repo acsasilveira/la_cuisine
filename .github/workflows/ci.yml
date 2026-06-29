@@ -42,6 +42,10 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
+    env:
+      DATABASE_URL: sqlite+aiosqlite:///:memory:
+      GEMINI_API_KEY: dummy-key-for-testing
+      JWT_SECRET: dummy-secret-for-testing
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

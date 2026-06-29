@@ -7,14 +7,17 @@ import { ChatInput } from "./ChatInput";
 import { QuickActions } from "./QuickActions";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  draft?: any;
 }
 
 export function ChatInterface() {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -28,6 +31,87 @@ export function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Check for pending recipe image to analyze on mount
+  useEffect(() => {
+    const pendingImage = sessionStorage.getItem("pending_recipe_image");
+    if (pendingImage) {
+      sessionStorage.removeItem("pending_recipe_image");
+      analyzeUploadedImage(pendingImage);
+    }
+  }, []);
+
+  const handleImportDraft = (draft: any) => {
+    sessionStorage.setItem("pending_recipe_draft", JSON.stringify(draft));
+    router.push("/recipes/new");
+  };
+
+  const analyzeUploadedImage = async (base64Image: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: "📸 [Imagem enviada para extração de receita]",
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const base64ToBlob = (base64: string): Blob => {
+        const parts = base64.split(";base64,");
+        const contentType = parts[0].split(":")[1];
+        const raw = window.atob(parts[1]);
+        const rawLength = raw.length;
+        const uInt8Array = new Uint8Array(rawLength);
+        for (let i = 0; i < rawLength; ++i) {
+          uInt8Array[i] = raw.charCodeAt(i);
+        }
+        return new Blob([uInt8Array], { type: contentType });
+      };
+
+      const blob = base64ToBlob(base64Image);
+      const formData = new FormData();
+      formData.append("file", blob, "recipe_image.jpg");
+
+      const response = await api.post("/api/recipes/analyze-image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const draft = response.data;
+      
+      const categoryMap: Record<string, string> = {
+        appetizer: "Entrada",
+        main: "Prato Principal",
+        dessert: "Sobremesa",
+        other: "Outro"
+      };
+      const translatedCategory = categoryMap[draft.category?.toLowerCase()] || draft.category;
+
+      const aiContent = `🍳 **Receita Extraída com Sucesso!**\n\n**Título:** ${draft.title}\n**Categoria:** ${translatedCategory}\n**Rendimento:** ${draft.yield_amount} ${draft.yield_unit}\n\n**Ingredientes:**\n${draft.ingredients?.map((i: any) => `• ${i.amount} ${i.unit} ${i.name}`).join("\n") || "—"}\n\n**Modo de Preparo:**\n${draft.steps?.map((s: string, idx: number) => `${idx + 1}. ${s}`).join("\n") || "—"}\n\nRevisar e preencher a ficha técnica automática no link abaixo:`;
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: aiContent,
+        draft: draft,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (err: any) {
+      console.error(err);
+      const errorMsg = err.response?.data?.detail || "Ocorreu um erro ao analisar a imagem. Verifique se é uma imagem de receita válida ou se o Agente está ativo.";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `⚠️ Erro na análise da imagem: ${errorMsg}`,
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
@@ -98,6 +182,16 @@ export function ChatInterface() {
               <p className={message.role === "assistant" ? "font-serif text-xl sm:text-2xl leading-relaxed text-graphite whitespace-pre-line" : "font-sans text-lg text-graphite/70"}>
                 {message.content}
               </p>
+              {message.draft && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => handleImportDraft(message.draft)}
+                    className="inline-flex items-center justify-center rounded-full bg-gold px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-cream transition-all hover:bg-graphite cursor-pointer"
+                  >
+                    Preencher Formulário de Receita
+                  </button>
+                </div>
+              )}
             </motion.div>
           ))}
           {isLoading && (
@@ -123,7 +217,7 @@ export function ChatInterface() {
       <div className="fixed bottom-20 left-0 right-0 bg-gradient-to-t from-cream via-cream to-transparent pt-10 pb-6 px-4 md:px-8 md:bottom-6 md:left-64 z-30">
         <div className="max-w-4xl mx-auto">
           <QuickActions onActionClick={handleSendMessage} />
-          <ChatInput onSend={handleSendMessage} />
+          <ChatInput onSend={handleSendMessage} onImageSend={analyzeUploadedImage} />
         </div>
       </div>
     </div>

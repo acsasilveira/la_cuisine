@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onImageSend?: (base64Image: string) => void;
 }
 
-export function ChatInput({ onSend }: ChatInputProps) {
+export function ChatInput({ onSend, onImageSend }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -26,6 +27,18 @@ export function ChatInput({ onSend }: ChatInputProps) {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      onImageSend?.(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="relative flex flex-col gap-2 rounded-3xl border border-graphite/10 bg-card/50 p-2 backdrop-blur-md transition-all focus-within:border-gold/50 shadow-sm">
       <Textarea
@@ -40,14 +53,18 @@ export function ChatInput({ onSend }: ChatInputProps) {
       
       <div className="flex items-center justify-between border-t border-graphite/5 pb-1 pt-1">
         <div className="flex gap-2 pl-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
+          <label 
             className="flex items-center justify-center p-2 text-graphite/40 hover:text-gold transition-colors cursor-pointer border-0 hover:bg-transparent" 
             title="Enviar Foto"
           >
             <Camera className="h-5 w-5" />
-          </Button>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </label>
         </div>
 
         <Button

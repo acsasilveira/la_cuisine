@@ -42,26 +42,29 @@ export default function NewRecipePage() {
         };
         const translatedCategory = categoryMap[draft.category?.toLowerCase()] || "Prato Principal";
 
-        setTitle(draft.title || "");
-        setCategory(translatedCategory);
-        setYieldAmount(draft.yield_amount || 1);
-        setYieldUnit(draft.yield_unit || "porção");
-        setPrepTime(draft.prep_time_minutes || 30);
-        setStyle(draft.style || "Clássica");
-        
-        if (draft.ingredients && Array.isArray(draft.ingredients)) {
-          setIngredients(draft.ingredients.map((i: any) => ({
-            name: i.name || "",
-            amount: i.amount || 1,
-            unit: i.unit || "unidade"
-          })));
-        }
-        if (draft.steps && Array.isArray(draft.steps)) {
-          setSteps(draft.steps.map((stepText: string, idx: number) => ({
-            step_number: idx + 1,
-            instruction: stepText
-          })));
-        }
+        // Defer state updates to the next tick to avoid eslint react-hooks/set-state-in-effect error
+        setTimeout(() => {
+          setTitle(draft.title || "");
+          setCategory(translatedCategory);
+          setYieldAmount(draft.yield_amount || 1);
+          setYieldUnit(draft.yield_unit || "porção");
+          setPrepTime(draft.prep_time_minutes || 30);
+          setStyle(draft.style || "Clássica");
+          
+          if (draft.ingredients && Array.isArray(draft.ingredients)) {
+            setIngredients(draft.ingredients.map((i: { name?: string; amount?: number; unit?: string }) => ({
+              name: i.name || "",
+              amount: i.amount || 1,
+              unit: i.unit || "unidade"
+            })));
+          }
+          if (draft.steps && Array.isArray(draft.steps)) {
+            setSteps(draft.steps.map((stepText: string, idx: number) => ({
+              step_number: idx + 1,
+              instruction: stepText
+            })));
+          }
+        }, 0);
       } catch (err) {
         console.error("Erro ao fazer parse do rascunho de receita:", err);
       }

@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useRef, useEffect } from "react";
 import { ChatInput } from "./ChatInput";
 import { QuickActions } from "./QuickActions";

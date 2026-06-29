@@ -76,15 +76,16 @@ async def login(
             detail="Credenciais inválidas",
         )
 
-    # Setar cookie HTTP-Only com o JWT
+    # Setar cookie HTTP-Only com o JWT (configurações seguras para Cross-Site em produção)
+    is_prod = not settings.DEBUG
     response.set_cookie(
         key="session",
         value=result["access_token"],
         max_age=COOKIE_MAX_AGE,
         httponly=True,
-        samesite="lax",
+        samesite="none" if is_prod else "lax",
         path="/",
-        secure=False,  # True em produção (HTTPS)
+        secure=True if is_prod else False,
     )
 
     # Retornar dados do usuário (sem token no body)
@@ -98,11 +99,14 @@ async def login(
 @router.post("/logout", response_model=MessageResponse)
 async def logout(response: Response):
     """Faz logout apagando o cookie de sessão."""
+    from app.config import settings
+    is_prod = not settings.DEBUG
     response.delete_cookie(
         key="session",
         httponly=True,
-        samesite="lax",
+        samesite="none" if is_prod else "lax",
         path="/",
+        secure=True if is_prod else False,
     )
     return {"message": "Logout realizado com sucesso"}
 

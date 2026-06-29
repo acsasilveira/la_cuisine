@@ -9,7 +9,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
     pool: "threads",
-    // @ts-ignore - Vitest 4 top-level threads option not yet updated in types
+    // @ts-expect-error - Vitest 4 top-level threads option not yet updated in types
     threads: {
       singleThread: true,
     },

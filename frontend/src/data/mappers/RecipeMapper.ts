@@ -14,10 +14,18 @@ export class RecipeMapper {
       instruction: step.instruction,
     }));
 
+    const categoryMap: Record<string, string> = {
+      appetizer: "Entrada",
+      main: "Prato Principal",
+      dessert: "Sobremesa",
+      other: "Outro"
+    };
+    const translatedCategory = categoryMap[dto.category.toLowerCase()] || dto.category;
+
     return {
       id: dto.id,
       title: dto.title,
-      category: dto.category,
+      category: translatedCategory,
       yieldAmount: dto.yield_amount,
       yieldUnit: dto.yield_unit,
       prepTimeMinutes: dto.prep_time_minutes,
@@ -42,9 +50,19 @@ export class RecipeMapper {
       instruction: step.instruction,
     }));
 
+    const categoryMap: Record<string, string> = {
+      "entrada": "appetizer",
+      "prato principal": "main",
+      "sobremesa": "dessert",
+      "acompanhamento": "other",
+      "bebida": "other",
+      "outro": "other"
+    };
+    const backendCategory = categoryMap[domain.category.toLowerCase()] || "other";
+
     return {
       title: domain.title,
-      category: domain.category,
+      category: backendCategory,
       yield_amount: domain.yieldAmount,
       yield_unit: domain.yieldUnit,
       prep_time_minutes: domain.prepTimeMinutes,

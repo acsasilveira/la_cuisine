@@ -279,7 +279,7 @@ export default function MenusPage() {
 
       {/* Suggestion Modal IA */}
       <Dialog open={isSuggestModalOpen} onOpenChange={setIsSuggestModalOpen}>
-        <DialogContent className="bg-cream rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative border border-gold/20">
+        <DialogContent className="bg-cream rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative border border-gold/20 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex items-center gap-3 mb-6 flex-row">
             <div className="bg-gold/10 p-3 rounded-full">
               <Sparkles className="h-5 w-5 text-gold" />
@@ -339,7 +339,7 @@ export default function MenusPage() {
 
       {/* Manual Menu Creation Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="bg-cream rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative border border-gold/20">
+        <DialogContent className="bg-cream rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative border border-gold/20 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex items-center gap-3 mb-6 flex-row">
             <div className="bg-gold/10 p-3 rounded-full">
               <Plus className="h-5 w-5 text-gold" />

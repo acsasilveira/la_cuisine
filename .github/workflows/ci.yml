@@ -70,3 +70,14 @@ jobs:
 
       - name: Build Frontend Docker Image
         run: docker build -t lacuisine-frontend:test ./frontend
+
+  deploy-backend:
+    name: Deploy to Render
+    needs: [backend-ci, frontend-ci, docker-build-check]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+

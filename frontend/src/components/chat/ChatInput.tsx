@@ -1,23 +1,24 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { Sparkles, Camera } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 interface ChatInputProps {
+  value: string;
+  onChange: (value: string) => void;
   onSend: (message: string) => void;
   onImageSend?: (base64Image: string) => void;
 }
 
-export function ChatInput({ onSend, onImageSend }: ChatInputProps) {
-  const [value, setValue] = useState("");
+export function ChatInput({ value, onChange, onSend, onImageSend }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = () => {
     if (!value.trim()) return;
     onSend(value);
-    setValue("");
+    onChange("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -45,7 +46,7 @@ export function ChatInput({ onSend, onImageSend }: ChatInputProps) {
         ref={textareaRef}
         rows={1}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Descreva seu prato ou envie uma foto..."
         className="max-h-40 w-full resize-none bg-transparent px-4 py-3 text-lg text-graphite outline-none placeholder:text-graphite/30 border-0 focus-visible:ring-0 focus-visible:border-0 shadow-none min-h-0 focus-visible:ring-offset-0 focus-visible:ring-ring/0"

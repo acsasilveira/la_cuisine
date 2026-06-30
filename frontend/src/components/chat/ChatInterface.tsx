@@ -26,7 +26,10 @@ export function ChatInterface() {
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const showSuggestions = messages.length === 1 && !isLoading && !inputValue.trim();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -216,8 +219,13 @@ export function ChatInterface() {
 
       <div className="fixed bottom-20 left-0 right-0 bg-gradient-to-t from-cream via-cream to-transparent pt-10 pb-6 px-4 md:px-8 md:bottom-6 md:left-64 z-30">
         <div className="max-w-4xl mx-auto">
-          <QuickActions onActionClick={handleSendMessage} />
-          <ChatInput onSend={handleSendMessage} onImageSend={analyzeUploadedImage} />
+          {showSuggestions && <QuickActions onActionClick={handleSendMessage} />}
+          <ChatInput
+            value={inputValue}
+            onChange={setInputValue}
+            onSend={handleSendMessage}
+            onImageSend={analyzeUploadedImage}
+          />
         </div>
       </div>
     </div>

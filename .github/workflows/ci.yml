@@ -46,6 +46,7 @@ jobs:
       DATABASE_URL: "sqlite+aiosqlite:///:memory:"
       GEMINI_API_KEY: "dummy-key-for-testing"
       JWT_SECRET: "dummy-secret-for-testing"
+      DEBUG: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

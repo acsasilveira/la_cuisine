@@ -32,7 +32,7 @@ async def menu_client(menu_session):
         yield menu_session
     app.dependency_overrides[get_db_session] = override_get_db_session
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
     app.dependency_overrides.clear()
 
@@ -50,7 +50,7 @@ async def auth_menu_client(menu_session, chef_user):
         yield menu_session
     app.dependency_overrides[get_db_session] = override_get_db_session
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test", cookies=chef_user) as ac:
+    async with AsyncClient(transport=transport, base_url="https://test", cookies=chef_user) as ac:
         yield ac
     app.dependency_overrides.clear()
 
@@ -109,7 +109,7 @@ class TestMenuAPI:
         login2 = await menu_client.post("/api/auth/login", json={"email": "hacker@test.com", "password": "pass"})
         
         # Client para User 2
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", cookies=login2.cookies) as client2:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test", cookies=login2.cookies) as client2:
             # Tentar acessar menu do User 1
             resp = await client2.get(f"/api/menus/{menu_id}")
             assert resp.status_code == 404  # Deve retornar 404 por segurança (esconder existência)

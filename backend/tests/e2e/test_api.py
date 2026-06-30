@@ -49,7 +49,7 @@ async def e2e_client(e2e_session):
 
     app.dependency_overrides[get_db_session] = override_get_db_session
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
     app.dependency_overrides.clear()
 
@@ -88,7 +88,7 @@ async def auth_client(e2e_session, auth_cookies):
     transport = ASGITransport(app=app)
     async with AsyncClient(
         transport=transport,
-        base_url="http://test",
+        base_url="https://test",
         cookies=auth_cookies,
     ) as ac:
         yield ac

@@ -69,7 +69,7 @@ async def get_current_user(
             msg = str(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"DEBUG_FAIL: secret={secret} algorithm={algorithm} token_len={len(token)} error={msg}",
+            detail="Sessão inválida",
         )
 
     user_id_str = payload.get("sub")

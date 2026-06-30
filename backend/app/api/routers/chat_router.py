@@ -29,7 +29,9 @@ async def chat_copilot(
             location=current_user.location,
         )
         return ChatResponse(**result)
-    except ValueError:
-        raise HTTPException(status_code=502, detail="IA retornou formato inválido")
+    except ValueError as e:
+        if "GEMINI_API_KEY" in str(e):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="IA retornou formato inválido")
     except TimeoutError:
-        raise HTTPException(status_code=504, detail="IA não respondeu a tempo")
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="IA não respondeu a tempo")

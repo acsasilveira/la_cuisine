@@ -50,16 +50,27 @@ class GeminiAIService(AIServicePort):
     async def _call_gemini(self, prompt: str, image_bytes: bytes | None = None) -> dict:
         """Chama a API do Gemini. Método separado para facilitar mocking nos testes."""
         from google import genai
+        from google.genai import types
+
+        if not self.api_key or self.api_key == "secret":
+            raise ValueError(
+                "GEMINI_API_KEY não configurada. Por favor, adicione uma chave de API válida do Google Gemini no arquivo .env."
+            )
 
         client = genai.Client(api_key=self.api_key)
 
         contents = []
         if image_bytes:
-            contents.append({"inline_data": {"mime_type": "image/jpeg", "data": image_bytes}})
+            contents.append(
+                types.Part.from_bytes(
+                    data=image_bytes,
+                    mime_type="image/jpeg",
+                )
+            )
         contents.append(prompt)
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3-flash-preview",
             contents=contents,
         )
 
